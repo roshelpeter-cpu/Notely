@@ -1,0 +1,31 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.env.*
+!.env.example
+
+# Local databases and WAL files
+server/data/*.db
+server/data/*.db-shm
+server/data/*.db-wal
+*.sqlite
+*.sqlite3
+
+# Logs and coverage
+logs/
+*.log
+npm-debug.log*
+coverage/
+
+# Editor and OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+client/node_modules/.tmp/

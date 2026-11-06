@@ -1,0 +1,26 @@
+{
+  "name": "notely",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Notely is an immersive woodland personal knowledge workspace.",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c green,yellow \"npm run dev -w server\" \"npm run dev -w client\"",
+    "start": "npm run start -w server",
+    "build": "npm run build -w client",
+    "test": "npm run test -w server && npm run test -w client",
+    "lint": "npm run lint -w client",
+    "seed": "npm run seed -w server",
+    "seed:reset": "npm run seed:reset -w server",
+    "check": "node --check server/src/index.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
