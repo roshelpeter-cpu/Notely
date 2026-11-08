@@ -1,19 +1,32 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Splash } from '../components/Splash'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { WoodlandScene } from '../components/world'
 
 export default function WelcomePage() {
+  const navigate = useNavigate()
   const [splash, setSplash] = useState(() => sessionStorage.getItem('notely-splash') !== 'seen')
+  const [entering, setEntering] = useState(false)
 
   function finishSplash() {
     sessionStorage.setItem('notely-splash', 'seen')
     setSplash(false)
   }
 
+  function enter() {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      || document.documentElement.dataset.motion === 'reduce'
+    if (reduce) {
+      navigate('/app')
+      return
+    }
+    setEntering(true)
+    window.setTimeout(() => navigate('/app'), 820)
+  }
+
   return (
-    <div className="welcome">
+    <div className={`welcome ${entering ? 'is-entering' : ''}`}>
       {splash && <Splash onDone={finishSplash} />}
       <div className="welcome-scene" aria-hidden="true"><WoodlandScene /></div>
       <section className={`welcome-card ${splash ? 'is-waiting' : 'is-ready'}`}>
@@ -21,7 +34,9 @@ export default function WelcomePage() {
         <h1>Notely</h1>
         <p>A woodland workspace for notes, tasks, and the quiet paths between ideas.</p>
         <div className="quick" style={{ justifyContent: 'center' }}>
-          <Link className="enter-btn" to="/app">Enter your workspace</Link>
+          <button className="enter-btn" type="button" onClick={enter} disabled={entering}>
+            {entering ? 'Opening the gate…' : 'Enter your workspace'}
+          </button>
         </div>
         <ThemeToggle />
       </section>

@@ -718,6 +718,11 @@ a { color: inherit; }
 }
 .welcome-card.is-waiting { opacity: 0; }
 .welcome-card.is-ready { animation: title-in .6s ease both; }
+.welcome.is-entering .welcome-scene { animation: enter-zoom .9s ease forwards; }
+.welcome.is-entering .welcome-card { animation: enter-fade .55s ease forwards; }
+@keyframes enter-zoom { to { transform: scale(1.14); } }
+@keyframes enter-fade { to { opacity: 0; transform: translateY(12px) scale(.98); } }
+.welcome-scene { transform-origin: center 60%; }
 @keyframes title-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes load-slide { from { transform: translateX(-120%); } to { transform: translateX(280%); } }
 @keyframes splash-out { to { opacity: 0; visibility: hidden; } }
