@@ -416,7 +416,7 @@ a { color: inherit; }
 .welcome-card h1 { font-size: clamp(3rem, 8vw, 4.6rem); margin: 4px 0 8px; }
 .enter-btn {
   margin-top: 16px; min-width: 220px; min-height: 54px; border-radius: 80px 80px 16px 16px;
-  background: var(--forest); color: var(--cream); border: 0; cursor: pointer; text-decoration: none;
+  background: #1c4332; color: #f7f1e4; border: 0; cursor: pointer; text-decoration: none;
   display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-size: 1.15rem;
 }
 .mobile-nav, .menu-btn { display: none; }
@@ -647,6 +647,7 @@ a { color: inherit; }
 }
 .welcome-scene .scene-art { width: 100%; height: 100%; border-radius: 0; min-height: 100%; }
 .enter-btn { box-shadow: 0 12px 24px rgba(20, 40, 28, .25); }
+:root[data-theme="night"] .enter-btn { background: #e4c48a; color: #1c2418; }
 .theme-toggle {
   display: inline-flex;
   align-items: center;
