@@ -140,7 +140,9 @@ test('keeps one daily note per date and links notes', async () => {
   const back = await api(`/api/notes/${other.json.data.id}/links`);
   assert.equal(back.json.data.incoming[0].id, first.json.data.id);
   const graph = await api('/api/graph');
-  assert.ok(graph.json.data.edges.some((edge) => edge.source === first.json.data.id && edge.target === other.json.data.id));
+  const linkedEdge = graph.json.data.edges.find((edge) => edge.source === first.json.data.id && edge.target === other.json.data.id);
+  assert.ok(linkedEdge);
+  assert.equal(linkedEdge.kind, 'link');
   const duplicate = await api(`/api/notes/${first.json.data.id}/links`, {
     method: 'POST',
     body: { targetId: other.json.data.id },

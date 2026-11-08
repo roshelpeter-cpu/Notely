@@ -690,7 +690,7 @@ export function graphFor(workspaceId) {
       notebookName: row.notebook_name ?? null,
       linkCount: row.link_count,
     }));
-  const edges = getDb()
+  const linkEdges = getDb()
     .prepare(
       `SELECT l.source_id AS source, l.target_id AS target
        FROM note_links l
@@ -699,8 +699,58 @@ export function graphFor(workspaceId) {
        WHERE a.workspace_id = ? AND a.deleted_at IS NULL AND a.is_archived = 0
          AND b.workspace_id = ? AND b.deleted_at IS NULL AND b.is_archived = 0`,
     )
-    .all(id, id);
-  return { nodes, edges };
+    .all(id, id)
+    .map((edge) => ({ source: edge.source, target: edge.target, kind: 'link' }));
+  const seen = new Set(linkEdges.map((edge) => pairKey(edge.source, edge.target)));
+  const notebookEdges = [];
+  const byNotebook = new Map();
+  for (const node of nodes) {
+    if (!node.notebookId) continue;
+    const list = byNotebook.get(node.notebookId) || [];
+    list.push(node.id);
+    byNotebook.set(node.notebookId, list);
+  }
+  for (const ids of byNotebook.values()) {
+    if (ids.length < 2) continue;
+    const hub = ids[0];
+    for (const other of ids.slice(1)) {
+      const key = pairKey(hub, other);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      notebookEdges.push({ source: hub, target: other, kind: 'notebook' });
+    }
+  }
+  const tagRows = getDb()
+    .prepare(
+      `SELECT nt.note_id, nt.tag_id
+       FROM note_tags nt
+       JOIN notes n ON n.id = nt.note_id
+       WHERE n.workspace_id = ? AND n.deleted_at IS NULL AND n.is_archived = 0`,
+    )
+    .all(id);
+  const byTag = new Map();
+  for (const row of tagRows) {
+    const list = byTag.get(row.tag_id) || [];
+    list.push(row.note_id);
+    byTag.set(row.tag_id, list);
+  }
+  const tagEdges = [];
+  for (const ids of byTag.values()) {
+    if (ids.length < 2 || ids.length > 8) continue;
+    const hub = ids[0];
+    for (const other of ids.slice(1)) {
+      if (tagEdges.length >= 30) break;
+      const key = pairKey(hub, other);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      tagEdges.push({ source: hub, target: other, kind: 'tag' });
+    }
+  }
+  return { nodes, edges: [...linkEdges, ...notebookEdges, ...tagEdges] };
+}
+
+function pairKey(left, right) {
+  return left < right ? `${left}:${right}` : `${right}:${left}`;
 }
 
 export function calendarItems(query) {
