@@ -5,6 +5,7 @@ import { Link, useBlocker, useParams } from 'react-router-dom'
 import { ApiError, api } from '../api/client'
 import type { Note, NoteDoc } from '../api/types'
 import { RichEditor } from '../components/Editor'
+import { SceneArt } from '../components/scenery'
 import { useToast } from '../context/ToastContext'
 import { useUi } from '../context/UiContext'
 import { useWorkspace } from '../context/WorkspaceContext'
@@ -22,6 +23,7 @@ export default function EditorPage() {
   const note = useQuery({ queryKey: ['note', noteId], queryFn: () => api.note(noteId), enabled: Number.isInteger(noteId) && noteId > 0 })
   const notebooks = useQuery({ queryKey: ['notebooks', workspaceId], queryFn: () => api.notebooks(workspaceId) })
   const tags = useQuery({ queryKey: ['tags', workspaceId], queryFn: () => api.tags(workspaceId) })
+  const library = useQuery({ queryKey: ['notes', workspaceId, 'picker'], queryFn: () => api.notes({ workspaceId, limit: 100 }) })
   const links = useQuery({ queryKey: ['links', noteId], queryFn: () => api.links(noteId), enabled: note.isSuccess })
   const versions = useQuery({ queryKey: ['versions', noteId], queryFn: () => api.versions(noteId), enabled: note.isSuccess })
   const suggestions = useQuery({ queryKey: ['suggestions', workspaceId, noteId], queryFn: () => api.suggestions(workspaceId, noteId), enabled: note.isSuccess })
@@ -140,6 +142,7 @@ export default function EditorPage() {
   return (
     <div className={`page editor-layout ${ui.focus ? 'is-focus' : ''}`}>
       <section className="editor-sheet card">
+        <div className="editor-banner"><SceneArt scene="cottage" crop="top" /></div>
         <div className="spread">
           <Link to="/app/notes">Back to the library</Link>
           <div className="quick">
@@ -186,14 +189,22 @@ export default function EditorPage() {
             <TagAdder existing={tags.data || []} onCreate={async (name) => { const tag = await api.createTag({ workspaceId, name, color: TAG_COLORS[note.data.tags.length % TAG_COLORS.length] }); await applyTags([...note.data.tags.map((item) => item.id), tag.id]) }} onPick={(id) => void applyTags([...new Set([...note.data.tags.map((item) => item.id), id])])} />
           </section>
           <section className="panel">
+            <h2>Details</h2>
+            <p>Updated {formatWhen(note.data.updatedAt)}</p>
+            <p className="muted">Created {formatWhen(note.data.createdAt)} · {note.data.wordCount} words</p>
+          </section>
+          <section className="panel">
             <h2>Connections</h2>
             <ul>{(links.data?.outgoing || []).map((link) => <li key={link.id}><Link to={`/app/notes/${link.id}`}>{link.title}</Link></li>)}</ul>
             <p className="muted">Backlinks</p>
             <ul>{(links.data?.incoming || []).map((link) => <li key={link.id}><Link to={`/app/notes/${link.id}`}>{link.title}</Link></li>)}</ul>
-            <label className="field"><span>Link to note id</span>
-              <input value={linkTarget} onChange={(event) => setLinkTarget(event.target.value)} />
+            <label className="field"><span>Link a note</span>
+              <select value={linkTarget} onChange={(event) => setLinkTarget(event.target.value)}>
+                <option value="">Choose a note</option>
+                {(library.data || []).filter((item) => item.id !== noteId).map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}
+              </select>
             </label>
-            <button className="btn btn-small btn-soft" type="button" onClick={() => void api.addLink(noteId, Number(linkTarget)).then(() => queryClient.invalidateQueries({ queryKey: ['links', noteId] }))}>Link</button>
+            <button className="btn btn-small btn-soft" type="button" disabled={!linkTarget} onClick={() => void api.addLink(noteId, Number(linkTarget)).then(() => { setLinkTarget(''); return queryClient.invalidateQueries({ queryKey: ['links', noteId] }) })}>Link</button>
           </section>
           <section className="panel">
             <h2>Earlier versions</h2>

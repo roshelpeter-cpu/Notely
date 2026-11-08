@@ -5,7 +5,8 @@ export function greetingFor(date: Date) {
   return 'Good evening'
 }
 
-export function welcomeLine(date: Date) {
+export function welcomeLine(date: Date, theme: 'day' | 'night' = 'day') {
+  if (theme === 'night') return 'The lanterns are lit. The path is quiet enough for a thought.'
   const hour = date.getHours()
   if (hour < 12) return 'The village is bright. There is room for a clear thought.'
   if (hour < 17) return 'The day is underway. Capture what you want to keep.'

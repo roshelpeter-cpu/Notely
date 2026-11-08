@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import { NoteCard } from '../components/NoteCard'
 import { NotebookCover, WoodlandScene } from '../components/world'
+import { useTheme } from '../context/ThemeContext'
 import { useToast } from '../context/ToastContext'
 import { useWorkspace } from '../context/WorkspaceContext'
 import { formatLong, localDate, monthGrid, monthLabel } from '../lib/dates'
@@ -12,6 +13,7 @@ import { toneClass } from '../lib/options'
 
 export default function HomePage() {
   const { workspaceId, profile, preferences } = useWorkspace()
+  const { theme } = useTheme()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { notify } = useToast()
@@ -52,7 +54,7 @@ export default function HomePage() {
         <div>
           <p className="eyebrow">{formatLong(today)}</p>
           <h1>{greetingFor(now)}, {profile?.displayName || 'friend'}.</h1>
-          <p>{welcomeLine(now)}</p>
+          <p>{welcomeLine(now, theme)}</p>
         </div>
         <WoodlandScene />
       </section>
@@ -116,9 +118,10 @@ export default function HomePage() {
           {show('calendar') && (
             <section className="panel">
               <div className="section-head"><h2>{monthLabel(now.getFullYear(), now.getMonth())}</h2><Link to="/app/calendar"><CalendarDays size={16} /></Link></div>
-              <div className="cal-grid">
-                {cells.filter((cell) => cell.inMonth).slice(0, 14).map((cell) => (
-                  <Link key={cell.date} className={`cal-cell ${cell.date === today ? 'is-today' : ''}`} to={`/app/calendar?date=${cell.date}`}>{cell.date.slice(-2)}</Link>
+              <div className="cal-grid cal-mini">
+                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((label, index) => <span className="cal-label" key={`${label}-${index}`}>{label}</span>)}
+                {cells.map((cell) => (
+                  <Link key={cell.date} className={`cal-cell ${cell.inMonth ? '' : 'is-out'} ${cell.date === today ? 'is-today' : ''}`} to={`/app/calendar?date=${cell.date}`}>{Number(cell.date.slice(8))}</Link>
                 ))}
               </div>
             </section>

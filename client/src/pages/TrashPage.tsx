@@ -3,6 +3,7 @@ import { api } from '../api/client'
 import { useToast } from '../context/ToastContext'
 import { useUi } from '../context/UiContext'
 import { useWorkspace } from '../context/WorkspaceContext'
+import { PageHead } from '../components/scenery'
 import { formatWhen } from '../lib/dates'
 
 export default function TrashPage() {
@@ -15,12 +16,7 @@ export default function TrashPage() {
 
   return (
     <div className="page">
-      <div className="section-head">
-        <div>
-          <p className="eyebrow">Clearing</p>
-          <h1>Trash</h1>
-        </div>
-      </div>
+      <PageHead eyebrow="Clearing" title="Trash" scene="map" crop="left" />
       <section className="panel">
         <h2>Notes</h2>
         {(notes.data || []).map((note) => (

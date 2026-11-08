@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import type { Task } from '../api/types'
+import { PageHead } from '../components/scenery'
 import { TaskDialog } from '../components/shell'
 import { useToast } from '../context/ToastContext'
 import { useUi } from '../context/UiContext'
@@ -60,13 +61,7 @@ export default function TasksPage() {
 
   return (
     <div className="page">
-      <div className="section-head">
-        <div>
-          <p className="eyebrow">Quest board</p>
-          <h1>Tasks</h1>
-        </div>
-        <button className="btn btn-primary" type="button" onClick={() => setOpen(true)}>New task</button>
-      </div>
+      <PageHead eyebrow="Quest board" title="Tasks" scene="village" crop="bottom" actions={<button className="btn btn-primary" type="button" onClick={() => setOpen(true)}>New task</button>} />
       <div className="filters">
         <select aria-label="Priority" value={priority} onChange={(event) => setPriority(event.target.value)}>
           <option value="">All priorities</option>
@@ -105,7 +100,7 @@ export default function TasksPage() {
             {(tasks.data || []).filter((task) => task.status === column.status).map((task) => (
               <article
                 key={task.id}
-                className="card"
+                className={`card task-card priority-${task.priority}`}
                 draggable
                 onDragStart={(event) => event.dataTransfer.setData('text/plain', String(task.id))}
               >

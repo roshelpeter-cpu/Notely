@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api/client'
 import { NoteCard } from '../components/NoteCard'
+import { PageHead } from '../components/scenery'
 import { useToast } from '../context/ToastContext'
 import { useWorkspace } from '../context/WorkspaceContext'
 
@@ -12,12 +13,7 @@ export default function ArchivePage() {
 
   return (
     <div className="page">
-      <div className="section-head">
-        <div>
-          <p className="eyebrow">Memories room</p>
-          <h1>Archive</h1>
-        </div>
-      </div>
+      <PageHead eyebrow="Memories room" title="Archive" scene="cottage" crop="bottom" />
       {notes.isLoading && <p>Opening the old room…</p>}
       {notes.isError && <p className="save-bad">The archive could not be opened.</p>}
       <div className="note-grid">

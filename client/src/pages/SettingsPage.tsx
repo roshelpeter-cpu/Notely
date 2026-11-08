@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { PageHead } from '../components/scenery'
 import { TransferPanel } from '../components/Transfer'
 import { useTheme } from '../context/ThemeContext'
 import { useToast } from '../context/ToastContext'
@@ -25,12 +26,7 @@ export default function SettingsPage() {
 
   return (
     <div className="page">
-      <div className="section-head">
-        <div>
-          <p className="eyebrow">Workshop</p>
-          <h1>Settings</h1>
-        </div>
-      </div>
+      <PageHead eyebrow="Workshop" title="Settings" scene="cottage" crop="top" />
       <section className="panel">
         <h2>Appearance</h2>
         <div className="grid-3">

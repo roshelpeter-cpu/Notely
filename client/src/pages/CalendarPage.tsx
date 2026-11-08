@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
+import { PageHead } from '../components/scenery'
 import { useWorkspace } from '../context/WorkspaceContext'
 import { addDays, formatLong, localDate, monthGrid, monthLabel, weekDays } from '../lib/dates'
 
@@ -73,25 +74,24 @@ export default function CalendarPage() {
 
   return (
     <div className="page">
-      <div className="section-head">
-        <div>
-          <p className="eyebrow">Almanac</p>
-          <h1>{view === 'month' ? monthLabel(year, month - 1) : formatLong(view === 'day' ? selected : anchor)}</h1>
-        </div>
-        <div className="quick">
+      <PageHead
+        eyebrow="Almanac"
+        title={view === 'month' ? monthLabel(year, month - 1) : formatLong(view === 'day' ? selected : anchor)}
+        scene="cottage"
+        actions={<div className="quick">
           <button className="btn btn-small btn-ghost" type="button" onClick={() => shift(-1)}>Previous</button>
           <button className="btn btn-small btn-ghost" type="button" onClick={() => { setAnchor(today); setSelected(today) }}>Today</button>
           <button className="btn btn-small btn-ghost" type="button" onClick={() => shift(1)}>Next</button>
           {(['month', 'week', 'day'] as View[]).map((item) => (
             <button key={item} className={`btn btn-small ${view === item ? 'btn-primary' : 'btn-ghost'}`} type="button" onClick={() => setView(item)}>{item}</button>
           ))}
-        </div>
-      </div>
+        </div>}
+      />
       <div className="cal-layout">
         <section className="panel">
           {view === 'month' && (
             <div className="cal-grid">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label) => <strong key={label}>{label}</strong>)}
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label) => <span className="cal-label" key={label}>{label}</span>)}
               {cells.map((cell) => (
                 <button
                   key={cell.date}

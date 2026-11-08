@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { NoteCard } from '../components/NoteCard'
+import { PageHead } from '../components/scenery'
 import { useToast } from '../context/ToastContext'
 import { useUi } from '../context/UiContext'
 import { useWorkspace } from '../context/WorkspaceContext'
@@ -61,16 +62,17 @@ export default function NotesPage() {
 
   return (
     <div className="page">
-      <div className="section-head">
-        <div>
-          <p className="eyebrow">Library</p>
-          <h1>Notes</h1>
-        </div>
-        <button className="btn btn-primary" type="button" onClick={async () => {
-          const note = await api.createNote({ workspaceId, title: 'Untitled note', notebookId: preferences?.defaultNotebookId || null })
-          navigate(`/app/notes/${note.id}`)
-        }}>New note</button>
-      </div>
+      <PageHead
+        eyebrow="Library"
+        title="Notes"
+        scene="library"
+        actions={(
+          <button className="btn btn-primary" type="button" onClick={async () => {
+            const note = await api.createNote({ workspaceId, title: 'Untitled note', notebookId: preferences?.defaultNotebookId || null })
+            navigate(`/app/notes/${note.id}`)
+          }}>New note</button>
+        )}
+      />
       <div className="filters">
         <input aria-label="Search notes" placeholder="Title or sentence" defaultValue={params.get('q') || ''} onChange={(event) => update('q', event.target.value)} />
         <select aria-label="Notebook" value={params.get('notebook') || ''} onChange={(event) => update('notebook', event.target.value)}>

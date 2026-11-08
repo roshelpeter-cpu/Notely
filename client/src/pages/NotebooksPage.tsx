@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import type { Notebook } from '../api/types'
 import { NotebookDialog } from '../components/shell'
+import { PageHead } from '../components/scenery'
 import { NotebookCover } from '../components/world'
 import { useToast } from '../context/ToastContext'
 import { useUi } from '../context/UiContext'
@@ -45,13 +46,7 @@ export default function NotebooksPage() {
 
   return (
     <div className="page">
-      <div className="section-head">
-        <div>
-          <p className="eyebrow">Collections</p>
-          <h1>Notebooks</h1>
-        </div>
-        <button className="btn btn-primary" type="button" onClick={() => setOpen(true)}>New notebook</button>
-      </div>
+      <PageHead eyebrow="Collections" title="Notebooks" scene="library" crop="bottom" actions={<button className="btn btn-primary" type="button" onClick={() => setOpen(true)}>New notebook</button>} />
       <div className="grid-2">
         <div>
           {[...grouped.entries()].map(([folder, books]) => (

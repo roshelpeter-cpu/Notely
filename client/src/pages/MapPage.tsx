@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import { useWorkspace } from '../context/WorkspaceContext'
+import { PageHead } from '../components/scenery'
 import { layoutGraph } from '../lib/layout'
 
 export default function MapPage() {
@@ -23,13 +24,12 @@ export default function MapPage() {
 
   return (
     <div className="page">
-      <div className="section-head">
-        <div>
-          <p className="eyebrow">Paths between ideas</p>
-          <h1>Knowledge map</h1>
-        </div>
-        <input aria-label="Search connected notes" placeholder="Find a note on the map" value={query} onChange={(event) => setQuery(event.target.value)} />
-      </div>
+      <PageHead
+        eyebrow="Paths between ideas"
+        title="Knowledge map"
+        scene="map"
+        actions={<input aria-label="Search connected notes" placeholder="Find a note on the map" value={query} onChange={(event) => setQuery(event.target.value)} />}
+      />
       {graph.isLoading && <p>Drawing the paths…</p>}
       {graph.isError && <p className="save-bad">The map could not be drawn.</p>}
       <div className="panel map-stage">
@@ -46,7 +46,7 @@ export default function MapPage() {
             return (
               <g key={node.id} className="map-node" onClick={() => navigate(`/app/notes/${node.id}`)}>
                 <circle cx={point.x} cy={point.y} r={16 + Math.min(node.linkCount, 6) * 2} fill="var(--gold-2)" stroke="var(--forest)" />
-                <text x={point.x} y={point.y + 30} textAnchor="middle">{node.title.slice(0, 24)}</text>
+                <text x={point.x} y={point.y + 32} textAnchor="middle">{node.title.length > 32 ? `${node.title.slice(0, 30)}…` : node.title}</text>
               </g>
             )
           })}

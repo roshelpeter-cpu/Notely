@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { api } from '../api/client'
+import { PageHead } from '../components/scenery'
 import { useWorkspace } from '../context/WorkspaceContext'
 
 export default function InsightsPage() {
@@ -11,12 +12,7 @@ export default function InsightsPage() {
 
   return (
     <div className="page">
-      <div className="section-head">
-        <div>
-          <p className="eyebrow">From the records</p>
-          <h1>Insights</h1>
-        </div>
-      </div>
+      <PageHead eyebrow="From the records" title="Insights" scene="village" crop="left" />
       {stats.isLoading && <p>Counting the pages…</p>}
       {stats.isError && <p className="save-bad">The records could not be read.</p>}
       {data && (
