@@ -6,7 +6,6 @@ import {
   CalendarDays,
   ChartColumn,
   ChevronLeft,
-  Feather,
   Home,
   Library,
   ListChecks,
@@ -30,7 +29,7 @@ import { useWorkspace } from '../context/WorkspaceContext'
 import { formatWhen } from '../lib/dates'
 import { COVERS, NOTEBOOK_COLORS, toneClass } from '../lib/options'
 import { SHORTCUTS } from '../lib/shortcuts'
-import { NotebookCover } from './world'
+import { NotebookCover, QuillMark, SidebarVine } from './world'
 
 const NAV = [
   { to: '/app', label: 'Home', icon: Home, end: true },
@@ -135,8 +134,9 @@ export function AppShell() {
       <a className="skip" href="#content">Skip to content</a>
       {ui.drawer && <div className="drawer-backdrop" onClick={() => ui.setDrawer(false)} />}
       <aside className={`sidebar ${ui.drawer ? 'is-open' : ''}`}>
+        <SidebarVine />
         <NavLink to="/app" className="brand" onClick={() => ui.setDrawer(false)}>
-          <LeafBadge />
+          <QuillMark />
           <div>
             <strong>Notely</strong>
             <span>A space for your thoughts</span>
@@ -172,6 +172,10 @@ export function AppShell() {
           ))}
         </nav>
         <div className="sidebar-foot">
+          <div className="sidebar-cat" aria-hidden="true">
+            <img className="art-day" src="/art/cat-day.jpg" alt="" />
+            <img className="art-night" src="/art/cat-night.jpg" alt="" />
+          </div>
           <div className="side-tools">
             <button className="icon-btn" type="button" aria-label={theme.theme === 'day' ? 'Switch to night' : 'Switch to day'} onClick={() => persistTheme(theme.theme === 'day' ? 'night' : 'day')}>
               {theme.theme === 'day' ? <Moon size={16} /> : <Sun size={16} />}
@@ -212,7 +216,8 @@ export function AppShell() {
                 <ResultGroup title="Notebooks" items={search.data?.notebooks.map((notebook) => ({ to: `/app/notes?notebook=${notebook.id}`, label: notebook.name, detail: notebook.description }))} />
                 <ResultGroup title="Tags" items={search.data?.tags.map((tag) => ({ to: `/app/notes?tag=${tag.id}`, label: tag.name }))} />
                 <ResultGroup title="Tasks" items={search.data?.tasks.map((task) => ({ to: '/app/tasks', label: task.title, detail: task.status }))} />
-                {!search.data?.notes.length && !search.data?.notebooks.length && !search.data?.tags.length && !search.data?.tasks.length && <p className="muted">Nothing matches yet.</p>}
+                {search.isFetching && <p className="muted">Searching the shelves…</p>}
+                {search.isSuccess && !search.data?.notes.length && !search.data?.notebooks.length && !search.data?.tags.length && !search.data?.tasks.length && <p className="muted">Nothing matches yet.</p>}
               </div>
             )}
           </form>
@@ -267,10 +272,6 @@ export function AppShell() {
       {taskOpen && <TaskDialog onClose={() => setTaskOpen(false)} onSaved={() => { setTaskOpen(false); notify('Task added.', 'success') }} />}
     </div>
   )
-}
-
-function LeafBadge() {
-  return <span className="leaf"><Feather size={18} /></span>
 }
 
 function ResultGroup({ title, items }: { title: string; items?: { to: string; label: string; detail?: string }[] }) {

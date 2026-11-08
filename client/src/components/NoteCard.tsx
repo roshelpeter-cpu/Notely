@@ -2,11 +2,18 @@ import { Pin, Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Note } from '../api/types'
 import { formatMedium } from '../lib/dates'
+import { COVER_ART, NOTE_THUMBS } from '../lib/art'
 import { toneClass } from '../lib/options'
 
 export function NoteCard({ note, view = 'card', onPin, onFavourite }: { note: Note; view?: 'card' | 'list'; onPin?: () => void; onFavourite?: () => void }) {
+  const thumb = (note.notebookCover && COVER_ART[note.notebookCover]) || NOTE_THUMBS[note.id % NOTE_THUMBS.length]
   return (
     <article className={`note-card card ${toneClass(note.color)}`}>
+      {view === 'card' && (
+        <Link className="note-thumb" to={`/app/notes/${note.id}`} tabIndex={-1} aria-hidden="true">
+          <img src={thumb} alt="" />
+        </Link>
+      )}
       <div className="spread">
         <Link to={`/app/notes/${note.id}`}><h3>{note.title}</h3></Link>
         <span>
@@ -20,7 +27,7 @@ export function NoteCard({ note, view = 'card', onPin, onFavourite }: { note: No
         {note.tags.map((tag) => <span className={`tag ${toneClass(tag.color)}`} key={tag.id}>{tag.name}</span>)}
         {note.isPinned && <span className="chip">Pinned</span>}
         {note.isFavourite && <span className="chip">Favourite</span>}
-        <small className="muted">{formatMedium(note.updatedAt)}</small>
+        <small className="muted">{note.wordCount} words · {formatMedium(note.updatedAt)}</small>
       </div>
     </article>
   )
