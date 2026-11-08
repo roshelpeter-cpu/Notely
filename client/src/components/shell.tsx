@@ -10,12 +10,10 @@ import {
   Library,
   ListChecks,
   Menu,
-  Moon,
   PanelLeft,
   Plus,
   Search,
   Settings,
-  Sun,
   Trash2,
   Waypoints,
 } from 'lucide-react'
@@ -29,6 +27,7 @@ import { useWorkspace } from '../context/WorkspaceContext'
 import { formatWhen } from '../lib/dates'
 import { COVERS, NOTEBOOK_COLORS, toneClass } from '../lib/options'
 import { SHORTCUTS } from '../lib/shortcuts'
+import { ThemeToggle } from './ThemeToggle'
 import { NotebookCover, QuillMark, SidebarVine } from './world'
 
 const NAV = [
@@ -177,9 +176,7 @@ export function AppShell() {
             <img className="art-night" src="/art/cat-night.jpg" alt="" />
           </div>
           <div className="side-tools">
-            <button className="icon-btn" type="button" aria-label={theme.theme === 'day' ? 'Switch to night' : 'Switch to day'} onClick={() => persistTheme(theme.theme === 'day' ? 'night' : 'day')}>
-              {theme.theme === 'day' ? <Moon size={16} /> : <Sun size={16} />}
-            </button>
+            <ThemeToggle variant="icon" />
             <NavLink className="icon-btn" to="/app/settings" aria-label="Settings">
               <Settings size={16} />
             </NavLink>

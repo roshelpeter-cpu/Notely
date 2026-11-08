@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
-import { useTheme } from '../context/ThemeContext'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { WoodlandScene } from '../components/world'
 
 export default function WelcomePage() {
-  const theme = useTheme()
   return (
     <div className="welcome">
       <div className="welcome-scene" aria-hidden="true"><WoodlandScene /></div>
@@ -14,9 +13,7 @@ export default function WelcomePage() {
         <div className="quick" style={{ justifyContent: 'center' }}>
           <Link className="enter-btn" to="/app">Enter your workspace</Link>
         </div>
-        <button className="btn btn-ghost" type="button" onClick={() => theme.toggleTheme()}>
-          {theme.theme === 'day' ? 'Look at the night' : 'Return to daylight'}
-        </button>
+        <ThemeToggle />
       </section>
     </div>
   )
