@@ -140,7 +140,7 @@ export default function EditorPage() {
   if (note.isError || !note.data) return <p className="page">That note is not on the shelf.</p>
 
   return (
-    <div className={`page editor-layout ${ui.focus ? 'is-focus' : ''}`}>
+    <div className={`page page-cottage editor-layout ${ui.focus ? 'is-focus' : ''}`}>
       <section className="editor-sheet card">
         <div className="editor-banner"><SceneArt scene="cottage" crop="top" /></div>
         <div className="spread">

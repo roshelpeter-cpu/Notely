@@ -23,7 +23,7 @@ export default function MapPage() {
   const visibleIds = new Set(visible.map((node) => node.id))
 
   return (
-    <div className="page">
+    <div className="page page-map">
       <PageHead
         eyebrow="Paths between ideas"
         title="Knowledge map"

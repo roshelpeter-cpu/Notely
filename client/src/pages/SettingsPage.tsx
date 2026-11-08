@@ -25,7 +25,7 @@ export default function SettingsPage() {
   if (!preferences || !profile) return <p className="page">Opening the workshop…</p>
 
   return (
-    <div className="page">
+    <div className="page page-workshop">
       <PageHead eyebrow="Workshop" title="Settings" scene="cottage" crop="top" />
       <section className="panel">
         <h2>Appearance</h2>

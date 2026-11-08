@@ -18,7 +18,7 @@ import {
   Waypoints,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import { useTheme } from '../context/ThemeContext'
 import { useToast } from '../context/ToastContext'
@@ -28,7 +28,7 @@ import { formatWhen } from '../lib/dates'
 import { COVERS, NOTEBOOK_COLORS, toneClass } from '../lib/options'
 import { SHORTCUTS } from '../lib/shortcuts'
 import { ThemeToggle } from './ThemeToggle'
-import { NotebookCover, QuillMark, SidebarVine } from './world'
+import { Ambience, NotebookCover, QuillMark, SidebarVine } from './world'
 
 const NAV = [
   { to: '/app', label: 'Home', icon: Home, end: true },
@@ -47,6 +47,7 @@ export function AppShell() {
   const theme = useTheme()
   const { notify } = useToast()
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const { workspaceId, workspaces, profile, preferences, setWorkspaceId } = useWorkspace()
   const [query, setQuery] = useState('')
@@ -238,8 +239,9 @@ export function AppShell() {
             </div>
           )}
         </header>
+        <Ambience />
         <main id="content" className="content">
-          <Outlet />
+          <Outlet key={location.pathname} />
         </main>
         <nav className="mobile-nav" aria-label="Mobile">
           <NavLink to="/app" end><Home size={18} />Home</NavLink>

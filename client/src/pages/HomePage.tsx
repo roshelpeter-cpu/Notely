@@ -49,7 +49,7 @@ export default function HomePage() {
   const show = (key: keyof NonNullable<typeof sections>) => sections?.[key] !== false
 
   return (
-    <div className="page">
+    <div className="page page-home">
       <section className="hero card">
         <div>
           <p className="eyebrow">{formatLong(today)}</p>

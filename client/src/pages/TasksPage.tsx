@@ -60,7 +60,7 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="page">
+    <div className="page page-quest">
       <PageHead eyebrow="Quest board" title="Tasks" scene="village" crop="bottom" actions={<button className="btn btn-primary" type="button" onClick={() => setOpen(true)}>New task</button>} />
       <div className="filters">
         <select aria-label="Priority" value={priority} onChange={(event) => setPriority(event.target.value)}>

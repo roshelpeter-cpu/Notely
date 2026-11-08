@@ -11,7 +11,7 @@ export default function InsightsPage() {
   const data = stats.data
 
   return (
-    <div className="page">
+    <div className="page page-insights">
       <PageHead eyebrow="From the records" title="Insights" scene="village" crop="left" />
       {stats.isLoading && <p>Counting the pages…</p>}
       {stats.isError && <p className="save-bad">The records could not be read.</p>}

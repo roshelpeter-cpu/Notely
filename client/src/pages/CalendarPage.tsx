@@ -73,7 +73,7 @@ export default function CalendarPage() {
   const cells = monthGrid(year, month - 1)
 
   return (
-    <div className="page">
+    <div className="page page-almanac">
       <PageHead
         eyebrow="Almanac"
         title={view === 'month' ? monthLabel(year, month - 1) : formatLong(view === 'day' ? selected : anchor)}

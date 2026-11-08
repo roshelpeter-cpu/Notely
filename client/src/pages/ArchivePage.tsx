@@ -12,7 +12,7 @@ export default function ArchivePage() {
   const notes = useQuery({ queryKey: ['notes', workspaceId, 'archive'], queryFn: () => api.notes({ workspaceId, archived: true }) })
 
   return (
-    <div className="page">
+    <div className="page page-archive">
       <PageHead eyebrow="Memories room" title="Archive" scene="cottage" crop="bottom" />
       {notes.isLoading && <p>Opening the old room…</p>}
       {notes.isError && <p className="save-bad">The archive could not be opened.</p>}

@@ -61,7 +61,7 @@ export default function NotesPage() {
   }
 
   return (
-    <div className="page">
+    <div className="page page-library">
       <PageHead
         eyebrow="Library"
         title="Notes"

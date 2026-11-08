@@ -45,7 +45,7 @@ export default function NotebooksPage() {
   }
 
   return (
-    <div className="page">
+    <div className="page page-books">
       <PageHead eyebrow="Collections" title="Notebooks" scene="library" crop="bottom" actions={<button className="btn btn-primary" type="button" onClick={() => setOpen(true)}>New notebook</button>} />
       <div className="grid-2">
         <div>

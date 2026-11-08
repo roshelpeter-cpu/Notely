@@ -15,7 +15,7 @@ export default function TrashPage() {
   const tasks = useQuery({ queryKey: ['tasks', workspaceId, 'trash'], queryFn: () => api.tasks({ workspaceId, trashed: true }) })
 
   return (
-    <div className="page">
+    <div className="page page-clearing">
       <PageHead eyebrow="Clearing" title="Trash" scene="map" crop="left" />
       <section className="panel">
         <h2>Notes</h2>

@@ -22,6 +22,20 @@ export function SidebarVine() {
   )
 }
 
+export function Ambience() {
+  return (
+    <div className="ambience" aria-hidden="true">
+      <span className="leaf-fall" />
+      <span className="leaf-fall leaf-b" />
+      <span className="leaf-fall leaf-c" />
+      <span className="firefly f1" />
+      <span className="firefly f2" />
+      <span className="firefly f3" />
+      <span className="cloud-drift" />
+    </div>
+  )
+}
+
 export function WoodlandScene({ label = 'A woodland village' }: { label?: string }) {
   return <SceneArt scene="village" label={label} />
 }
