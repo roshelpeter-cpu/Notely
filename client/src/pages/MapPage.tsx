@@ -24,12 +24,15 @@ export default function MapPage() {
   const drag = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null)
   const width = 960
   const height = 620
-  const nodes = graph.data?.nodes || []
-  const edges = graph.data?.edges || []
+  const graphData = graph.data
+  const nodes = graphData?.nodes || []
+  const edges = graphData?.edges || []
   const laid = useMemo(() => {
-    const clusters = Object.fromEntries(nodes.map((node) => [node.id, node.notebookId]))
-    return layoutGraph(nodes.map((node) => node.id), edges, width, height, clusters)
-  }, [edges, nodes])
+    const current = graphData?.nodes || []
+    const links = graphData?.edges || []
+    const clusters = Object.fromEntries(current.map((node) => [node.id, node.notebookId]))
+    return layoutGraph(current.map((node) => node.id), links, width, height, clusters)
+  }, [graphData])
   const positions = new Map(laid.map((node) => [node.id, node]))
   const needle = query.trim().toLowerCase()
   const visible = nodes.filter((node) => !needle || node.title.toLowerCase().includes(needle))
@@ -98,8 +101,18 @@ export default function MapPage() {
                 <g
                   key={node.id}
                   className={`map-node ${selected === node.id ? 'is-selected' : ''} ${linked ? 'is-linked' : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${node.title}. ${node.linkCount} direct links.`}
                   onClick={() => setSelected(node.id)}
                   onDoubleClick={() => navigate(`/app/notes/${node.id}`)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') navigate(`/app/notes/${node.id}`)
+                    if (event.key === ' ') {
+                      event.preventDefault()
+                      setSelected(node.id)
+                    }
+                  }}
                 >
                   <title>{`${node.title}${node.notebookName ? ` · ${node.notebookName}` : ''}. ${node.linkCount} direct links.`}</title>
                   <circle cx={point.x} cy={point.y} r={18 + Math.min(node.linkCount, 6) * 2} />

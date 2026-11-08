@@ -34,7 +34,7 @@ export function layoutGraph(
         let dx = a.x - b.x
         let dy = a.y - b.y
         const distance = Math.hypot(dx, dy) || 0.1
-        const force = Math.min(22, 18000 / (distance * distance))
+        const force = Math.min(34, 32000 / (distance * distance))
         dx = (dx / distance) * force
         dy = (dy / distance) * force
         a.x += dx
