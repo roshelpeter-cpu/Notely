@@ -779,6 +779,22 @@ a { color: inherit; }
 .cal-cell li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tag { line-height: 1.35; }
 .map-node text { font-size: 13px; }
+.org-panel h2 { margin-bottom: 4px; }
+.empty-inline { color: var(--muted); margin: 8px 0; }
+.folder-list, .tag-board { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.folder-card, .tag-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--parchment) 82%, var(--sage));
+  border: 1px solid var(--line);
+}
+.folder-card small, .tag-card .quick { display: block; }
+.tag-card { box-shadow: inset 4px 0 0 var(--tone, var(--sage)); }
+.tag-card .quick, .folder-card .quick { margin: 0; flex-wrap: nowrap; }
 .is-collapsed .sidebar-cat, .is-collapsed .sidebar-vine, .is-collapsed .brand span { display: none; }
 
 @media (max-width: 860px) {

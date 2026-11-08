@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { api } from '../api/client'
+import { ApiError, api } from '../api/client'
 import type { Notebook } from '../api/types'
 import { NotebookDialog } from '../components/shell'
 import { PageHead } from '../components/scenery'
@@ -76,63 +76,100 @@ export default function NotebooksPage() {
           {notebooks.data?.length === 0 && <div className="empty card"><h2>No volumes yet</h2><p>Bind a notebook and give it a cover.</p></div>}
         </div>
         <aside className="stack">
-          <section className="panel">
+          <section className="panel org-panel">
             <h2>Folders</h2>
-            <ul className="activity-list">
-              {(folders.data || []).map((folder) => (
-                <li key={folder.id}>
-                  <span>{folder.name}</span>
-                  <button className="btn btn-small btn-ghost" type="button" onClick={async () => {
-                    const name = window.prompt('Folder name', folder.name)
-                    if (!name?.trim()) return
-                    await api.updateFolder(folder.id, { name: name.trim() })
-                    await queryClient.invalidateQueries({ queryKey: ['folders'] })
-                  }}>Rename</button>
-                  <button className="btn btn-small btn-ghost" type="button" onClick={async () => {
-                    await api.deleteFolder(folder.id)
-                    await queryClient.invalidateQueries({ queryKey: ['folders'] })
-                    await queryClient.invalidateQueries({ queryKey: ['notebooks'] })
-                  }}>Remove</button>
-                </li>
-              ))}
-            </ul>
+            <p className="muted">A folder keeps related volumes on the same shelf.</p>
+            {(folders.data || []).length === 0 && <p className="empty-inline">No folders yet.</p>}
+            <div className="folder-list">
+              {(folders.data || []).map((folder) => {
+                const count = (notebooks.data || []).filter((notebook) => notebook.folderId === folder.id).length
+                return (
+                  <article className="folder-card" key={folder.id}>
+                    <div>
+                      <strong>{folder.name}</strong>
+                      <small className="muted">{count} {count === 1 ? 'notebook' : 'notebooks'}</small>
+                    </div>
+                    <div className="quick">
+                      <button className="btn btn-small btn-ghost" type="button" onClick={async () => {
+                        const name = await ui.ask({ title: 'Rename folder', label: 'Folder name', initial: folder.name, confirmLabel: 'Rename' })
+                        if (!name || name === folder.name) return
+                        try {
+                          await api.updateFolder(folder.id, { name })
+                          await queryClient.invalidateQueries({ queryKey: ['folders'] })
+                          notify('Folder renamed.', 'success')
+                        } catch (reason) {
+                          notify(reason instanceof ApiError ? reason.message : 'The folder could not be renamed.', 'error')
+                        }
+                      }}>Rename</button>
+                      <button className="btn btn-small btn-ghost" type="button" onClick={async () => {
+                        if (!(await ui.confirm({ title: 'Remove this folder?', message: 'Notebooks stay in the library, just without this shelf.', confirmLabel: 'Remove folder', danger: true }))) return
+                        await api.deleteFolder(folder.id)
+                        await queryClient.invalidateQueries({ queryKey: ['folders'] })
+                        await queryClient.invalidateQueries({ queryKey: ['notebooks'] })
+                        notify('Folder removed.', 'success')
+                      }}>Remove</button>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
             <form className="link-pop" onSubmit={async (event) => {
               event.preventDefault()
               if (!folderName.trim()) return
-              await api.createFolder({ workspaceId, name: folderName.trim() })
-              setFolderName('')
-              await queryClient.invalidateQueries({ queryKey: ['folders'] })
+              try {
+                await api.createFolder({ workspaceId, name: folderName.trim() })
+                setFolderName('')
+                await queryClient.invalidateQueries({ queryKey: ['folders'] })
+                notify('Folder added.', 'success')
+              } catch (reason) {
+                notify(reason instanceof ApiError ? reason.message : 'The folder could not be added.', 'error')
+              }
             }}>
               <input aria-label="New folder" placeholder="New folder" value={folderName} onChange={(event) => setFolderName(event.target.value)} />
               <button className="btn btn-small" type="submit">Add</button>
             </form>
           </section>
-          <section className="panel">
+          <section className="panel org-panel">
             <h2>Tags</h2>
-            <div className="tags">
+            <p className="muted">Tags mark a note without moving it to another book.</p>
+            {(tags.data || []).length === 0 && <p className="empty-inline">No tags yet.</p>}
+            <div className="tag-board">
               {(tags.data || []).map((tag) => (
-                <span key={tag.id} className={`tag ${toneClass(tag.color)}`}>
-                  {tag.name}
-                  <button type="button" className="btn btn-small btn-ghost" aria-label={`Rename ${tag.name}`} onClick={async () => {
-                    const name = window.prompt('Tag name', tag.name)
-                    if (!name?.trim()) return
-                    await api.updateTag(tag.id, { name: name.trim() })
-                    await queryClient.invalidateQueries({ queryKey: ['tags'] })
-                  }}>Rename</button>
-                  <button type="button" className="btn btn-small btn-ghost" aria-label={`Delete ${tag.name}`} onClick={async () => {
-                    if (!(await ui.confirm({ title: 'Remove this tag?', message: `“${tag.name}” will leave every note.`, confirmLabel: 'Delete tag', danger: true }))) return
-                    await api.deleteTag(tag.id)
-                    await queryClient.invalidateQueries({ queryKey: ['tags'] })
-                  }}>Remove</button>
-                </span>
+                <article key={tag.id} className={`tag-card ${toneClass(tag.color)}`}>
+                  <strong>{tag.name}</strong>
+                  <div className="quick">
+                    <button type="button" className="btn btn-small btn-ghost" aria-label={`Rename ${tag.name}`} onClick={async () => {
+                      const name = await ui.ask({ title: 'Rename tag', label: 'Tag name', initial: tag.name, confirmLabel: 'Rename' })
+                      if (!name || name === tag.name) return
+                      try {
+                        await api.updateTag(tag.id, { name })
+                        await queryClient.invalidateQueries({ queryKey: ['tags'] })
+                        notify('Tag renamed.', 'success')
+                      } catch (reason) {
+                        notify(reason instanceof ApiError ? reason.message : 'The tag could not be renamed.', 'error')
+                      }
+                    }}>Rename</button>
+                    <button type="button" className="btn btn-small btn-ghost" aria-label={`Delete ${tag.name}`} onClick={async () => {
+                      if (!(await ui.confirm({ title: 'Remove this tag?', message: `“${tag.name}” will leave every note.`, confirmLabel: 'Delete tag', danger: true }))) return
+                      await api.deleteTag(tag.id)
+                      await queryClient.invalidateQueries({ queryKey: ['tags'] })
+                      notify('Tag removed.', 'success')
+                    }}>Remove</button>
+                  </div>
+                </article>
               ))}
             </div>
             <form className="link-pop" onSubmit={async (event) => {
               event.preventDefault()
               if (!tagName.trim()) return
-              await api.createTag({ workspaceId, name: tagName.trim(), color: TAG_COLORS[(tags.data?.length || 0) % TAG_COLORS.length] })
-              setTagName('')
-              await queryClient.invalidateQueries({ queryKey: ['tags'] })
+              try {
+                await api.createTag({ workspaceId, name: tagName.trim(), color: TAG_COLORS[(tags.data?.length || 0) % TAG_COLORS.length] })
+                setTagName('')
+                await queryClient.invalidateQueries({ queryKey: ['tags'] })
+                notify('Tag added.', 'success')
+              } catch (reason) {
+                notify(reason instanceof ApiError ? reason.message : 'The tag could not be added.', 'error')
+              }
             }}>
               <input aria-label="New tag" placeholder="New tag" value={tagName} onChange={(event) => setTagName(event.target.value)} />
               <button className="btn btn-small" type="submit">Add</button>
