@@ -10,6 +10,7 @@ export function ThemeToggle({ variant = 'pill' }: { variant?: 'pill' | 'icon' })
 
   async function toggle() {
     const next = night ? 'day' : 'night'
+    await queryClient.cancelQueries({ queryKey: ['preferences'] })
     theme.setSetting(next)
     try {
       const preferences = await api.updatePreferences({ theme: next })

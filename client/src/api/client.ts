@@ -136,7 +136,8 @@ export const api = {
   suggestions: (workspaceId: number, noteId?: number) =>
     request<Suggestions>(`/api/suggestions${query({ workspaceId, noteId })}`),
   activity: (workspaceId: number) => request<Activity[]>(`/api/activity${query({ workspaceId, limit: 20 })}`),
-  preferences: () => request<Preferences>('/api/preferences'),
+  preferences: (context?: { signal?: AbortSignal }) =>
+    request<Preferences>('/api/preferences', { signal: context?.signal }),
   updatePreferences: (body: Partial<Preferences>) =>
     request<Preferences>('/api/preferences', { method: 'PATCH', body: JSON.stringify(body) }),
   exportJson: (workspaceId: number) => request<BackupFile>(`/api/export/json${query({ workspaceId })}`),

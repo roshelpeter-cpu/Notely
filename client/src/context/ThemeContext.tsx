@@ -1,4 +1,6 @@
+import { useQuery } from '@tanstack/react-query'
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { api } from '../api/client'
 import { resolveTheme, type Accent, type ThemeSetting } from '../lib/theme'
 
 interface ThemeValue {
@@ -28,6 +30,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [prefersDark, setPrefersDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches)
   const theme = resolveTheme(setting, prefersDark)
   const painted = useRef(false)
+  const chosenHere = useRef(false)
+  const preferences = useQuery({
+    queryKey: ['preferences'],
+    queryFn: ({ signal }) => api.preferences({ signal }),
+  })
+
+  function chooseSetting(next: ThemeSetting) {
+    chosenHere.current = true
+    setSettingState(next)
+  }
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)')
@@ -35,6 +47,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     media.addEventListener('change', onChange)
     return () => media.removeEventListener('change', onChange)
   }, [])
+
+  useEffect(() => {
+    const prefs = preferences.data
+    if (!prefs || chosenHere.current) return
+    setSettingState(prefs.theme)
+    setAccentState(prefs.accent)
+    setMotionState(prefs.motion)
+  }, [preferences.data])
 
   useEffect(() => {
     const root = document.documentElement
@@ -58,10 +78,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       theme,
       accent,
       motion,
-      setSetting: setSettingState,
-      setAccent: setAccentState,
-      setMotion: setMotionState,
-      toggleTheme: () => setSettingState(theme === 'day' ? 'night' : 'day'),
+      setSetting: chooseSetting,
+      setAccent: (next) => {
+        chosenHere.current = true
+        setAccentState(next)
+      },
+      setMotion: (next) => {
+        chosenHere.current = true
+        setMotionState(next)
+      },
+      toggleTheme: () => chooseSetting(theme === 'day' ? 'night' : 'day'),
     }),
     [setting, theme, accent, motion],
   )

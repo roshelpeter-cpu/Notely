@@ -65,6 +65,7 @@ export function AppShell() {
   const unread = (activity.data || []).filter((item) => item.id > seen).length
 
   function persistTheme(next: 'day' | 'night') {
+    void queryClient.cancelQueries({ queryKey: ['preferences'] })
     theme.setSetting(next)
     void api.updatePreferences({ theme: next }).then((prefs) => queryClient.setQueryData(['preferences'], prefs))
   }

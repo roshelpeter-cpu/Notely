@@ -17,6 +17,7 @@ export default function SettingsPage() {
   const notebooks = useQuery({ queryKey: ['notebooks', workspaceId], queryFn: () => api.notebooks(workspaceId) })
 
   async function save(body: Partial<Preferences>, message = 'Settings saved.') {
+    await queryClient.cancelQueries({ queryKey: ['preferences'] })
     const next = await api.updatePreferences(body)
     queryClient.setQueryData(['preferences'], next)
     notify(message, 'success')

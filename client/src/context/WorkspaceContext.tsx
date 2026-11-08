@@ -2,8 +2,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api } from '../api/client'
 import type { Preferences, Profile, Workspace } from '../api/types'
-import { useTheme } from './ThemeContext'
-
 interface WorkspaceValue {
   workspaceId: number
   workspace?: Workspace
@@ -18,7 +16,6 @@ const WorkspaceContext = createContext<WorkspaceValue | null>(null)
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
-  const { setSetting, setAccent, setMotion } = useTheme()
   const profile = useQuery({ queryKey: ['profile'], queryFn: api.profile })
   const workspaces = useQuery({ queryKey: ['workspaces'], queryFn: api.workspaces })
   const preferences = useQuery({ queryKey: ['preferences'], queryFn: api.preferences })
@@ -35,12 +32,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const prefs = preferences.data
     if (!prefs) return
-    setSetting(prefs.theme)
-    setAccent(prefs.accent)
-    setMotion(prefs.motion)
     document.documentElement.dataset.editorFont = prefs.editorFont
     document.documentElement.dataset.editorSize = prefs.editorSize
-  }, [preferences.data, setSetting, setAccent, setMotion])
+  }, [preferences.data])
 
   const setWorkspaceId = (id: number) => {
     setWorkspaceIdState(id)
