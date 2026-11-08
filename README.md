@@ -4,7 +4,7 @@ Notely is a local personal knowledge workspace with the feel of an illustrated w
 
 Day mode is a sunlit forest. Night mode is the same world under lantern light. Both themes share one layout and the same data.
 
-![Welcome](docs/screenshots/welcome-dayjpg)
+![Welcome](docs/screenshots/welcome-day.jpg)
 
 ## Features
 
@@ -15,12 +15,13 @@ Day mode is a sunlit forest. Night mode is the same world under lantern light. B
 - Notebooks, folders, and illustrated covers
 - Tasks with priority, due dates, and a three-column board
 - Calendar with month, week, and day views, plus daily notes
-- Knowledge map of linked notes
+- Knowledge map of direct links, shared notebooks, and shared tags
 - Writing statistics and streaks counted from stored notes and completed tasks
 - Local keyword suggestions, with no external AI service
 - Markdown and JSON import and export
 - Command palette and keyboard shortcuts
-- Day and night themes, accent colours, and focus mode
+- A short woodland splash, then a zoom through the gate into the workspace
+- Day and night themes with a sun and moon toggle, accent colours, and focus mode
 
 ## Technology
 
@@ -91,35 +92,35 @@ Notely is a single-user local app. There is no login and no admin role. Do not e
 
 Home, day:
 
-![Home in day mode](docs/screenshots/home-dayjpg)
+![Home in day mode](docs/screenshots/home-day.jpg)
 
 Home, night:
 
-![Home in night mode](docs/screenshots/home-nightjpg)
+![Home in night mode](docs/screenshots/home-night.jpg)
 
 Notes:
 
-![Notes library](docs/screenshots/notes-dayjpg)
+![Notes library](docs/screenshots/notes-day.jpg)
 
 Editor:
 
-![Note editor](docs/screenshots/editor-dayjpg)
+![Note editor](docs/screenshots/editor-day.jpg)
 
 Notebooks:
 
-![Notebooks](docs/screenshots/notebooks-dayjpg)
+![Notebooks](docs/screenshots/notebooks-day.jpg)
 
 Tasks:
 
-![Tasks](docs/screenshots/tasks-dayjpg)
+![Tasks](docs/screenshots/tasks-day.jpg)
 
 Knowledge map:
 
-![Knowledge map](docs/screenshots/map-dayjpg)
+![Knowledge map](docs/screenshots/map-day.jpg)
 
 Calendar, night:
 
-![Calendar at night](docs/screenshots/calendar-nightjpg)
+![Calendar at night](docs/screenshots/calendar-night.jpg)
 
 ## Installation
 
