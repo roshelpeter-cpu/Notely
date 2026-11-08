@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { addDays, monthGrid } from './dates'
-import { greetingFor } from './greeting'
+import { greetingFor, welcomeLine } from './greeting'
 import { resolveTheme } from './theme'
 
 describe('woodland helpers', () => {
@@ -14,6 +14,7 @@ describe('woodland helpers', () => {
     expect(greetingFor(new Date(2026, 10, 6, 8))).toBe('Good morning')
     expect(greetingFor(new Date(2026, 10, 6, 14))).toBe('Good afternoon')
     expect(greetingFor(new Date(2026, 10, 6, 20))).toBe('Good evening')
+    expect(welcomeLine(new Date(2026, 10, 6, 8), 'night')).toMatch(/lanterns/i)
   })
 
   it('builds a Monday-first month without duplicate days', () => {
