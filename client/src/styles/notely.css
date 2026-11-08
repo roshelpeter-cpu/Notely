@@ -779,6 +779,23 @@ a { color: inherit; }
 .cal-cell li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tag { line-height: 1.35; }
 .map-node text { font-size: 13px; }
+.map-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.map-legend { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: .86rem; }
+.map-legend i { width: 22px; height: 0; border-top: 2px solid var(--gold); display: inline-block; }
+.map-legend i.is-notebook { border-top-style: dashed; border-top-color: var(--sage); }
+.map-legend i.is-tag { border-top-style: dotted; border-top-color: var(--bark); }
+.map-edge.is-link { stroke: var(--gold); }
+.map-edge.is-notebook { stroke: var(--sage); stroke-dasharray: 5 4; }
+.map-edge.is-tag { stroke: var(--bark); stroke-dasharray: 1.5 5; }
+.map-edge.is-hot { stroke-width: 2.6; opacity: 1; }
+.map-edge.is-dim { opacity: .2; }
+.map-node circle { fill: var(--gold-2); stroke: var(--forest); stroke-width: 1.4; }
+.map-node.is-selected circle { fill: var(--gold); }
+.map-node.is-linked circle { stroke-width: 3; }
+.map-stage { cursor: grab; }
+.map-empty { position: absolute; left: 16px; bottom: 16px; }
+.map-detail { margin-top: 12px; }
+.map-detail .activity-list small { color: var(--muted); }
 .org-panel h2 { margin-bottom: 4px; }
 .empty-inline { color: var(--muted); margin: 8px 0; }
 .folder-list, .tag-board { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }

@@ -182,7 +182,7 @@ export interface GraphData {
     notebookName: string | null
     linkCount: number
   }[]
-  edges: { source: number; target: number }[]
+  edges: { source: number; target: number; kind?: 'link' | 'notebook' | 'tag' }[]
 }
 
 export interface CalendarData {
