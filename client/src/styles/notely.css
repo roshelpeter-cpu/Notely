@@ -294,7 +294,6 @@ a { color: inherit; }
 .scene .only-night { opacity: 0; }
 :root[data-theme="night"] .scene .only-day { opacity: 0; }
 :root[data-theme="night"] .scene .only-night { opacity: 1; }
-.cloud { animation: drift 36s ease-in-out infinite alternate; }
 .window-glow { transform-box: fill-box; transform-origin: center; animation: glow 3.6s ease-in-out infinite; }
 .firefly { animation: floaty 5s ease-in-out infinite; }
 @keyframes drift { to { transform: translateX(28px); } }
@@ -727,32 +726,77 @@ a { color: inherit; }
 @keyframes title-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes load-slide { from { transform: translateX(-120%); } to { transform: translateX(280%); } }
 @keyframes splash-out { to { opacity: 0; visibility: hidden; } }
-.ambience { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2; }
-.leaf-fall, .firefly { position: absolute; }
-.leaf-fall {
-  width: 18px; height: 28px; opacity: .85;
-  top: -40px; left: 18%;
-  animation: leaf-drop 28s linear infinite;
+.ambience, .woodland-effects { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+.falling-leaf, .firefly, .lantern-glow, .night-star { position: absolute; }
+.falling-leaf { top: -14%; opacity: .9; animation-name: leaf-sway; animation-timing-function: linear; animation-iteration-count: infinite; }
+.falling-leaf.sway-b { animation-name: leaf-sway-alt; }
+:root[data-theme="night"] .falling-leaf { opacity: 0; }
+.firefly, .lantern-glow, .night-star { opacity: 0; }
+:root[data-theme="night"] .firefly { opacity: 1; width: 7px; height: 7px; border-radius: 50%; background: #fff4c4; box-shadow: 0 0 10px 4px rgba(255, 214, 120, .85); animation-name: firefly-roam; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+:root[data-theme="night"] .lantern-glow { opacity: .8; width: 86px; height: 86px; margin: -43px 0 0 -43px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 186, 74, .78) 0%, rgba(255, 140, 40, .22) 46%, transparent 72%); animation-name: lantern-flicker; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+:root[data-theme="night"] .night-star { opacity: .85; width: 3px; height: 3px; border-radius: 50%; background: #f7f1e4; box-shadow: 0 0 6px #f4e7c4; animation: star-twinkle 2.8s ease-in-out infinite; }
+@keyframes leaf-sway { 0% { transform: translate3d(0, -8vh, 0) rotate(0deg); } 50% { transform: translate3d(36px, 58vh, 0) rotate(180deg); } 100% { transform: translate3d(-18px, 118vh, 0) rotate(340deg); } }
+@keyframes leaf-sway-alt { 0% { transform: translate3d(0, -12vh, 0) rotate(20deg); } 50% { transform: translate3d(-42px, 54vh, 0) rotate(200deg); } 100% { transform: translate3d(22px, 120vh, 0) rotate(380deg); } }
+@keyframes firefly-roam { 0% { transform: translate(0, 0) scale(.7); opacity: .25; } 30% { transform: translate(70px, -36px) scale(1); opacity: 1; } 60% { transform: translate(110px, 28px) scale(.8); opacity: .45; } 100% { transform: translate(16px, 8px) scale(.7); opacity: .25; } }
+@keyframes lantern-flicker { 0%, 100% { opacity: .42; } 35% { opacity: .9; } 48% { opacity: .3; } 62% { opacity: .82; } 78% { opacity: .5; } }
+@keyframes star-twinkle { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+.auth-gate { min-height: 100vh; display: grid; place-items: center; position: relative; overflow: hidden; }
+.auth-scene, .auth-scene img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.auth-night { display: none; }
+:root[data-theme="night"] .auth-day { display: none; }
+:root[data-theme="night"] .auth-night { display: block; }
+.auth-toggle { position: absolute; top: 18px; right: 18px; z-index: 3; }
+.auth-panel {
+  position: relative; z-index: 2;
+  width: min(520px, calc(100vw - 28px));
+  max-height: calc(100vh - 16px);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 42px 64px 32px;
+  color: #1c3d2e;
+  background:
+    radial-gradient(120px 80px at 12% 8%, rgba(255,255,255,.55), transparent 70%),
+    linear-gradient(180deg, #fbf6ea 0%, #f4e7d0 100%);
+  border-radius: 90px 100px 36px 42px / 42px 48px 36px 42px;
+  box-shadow: 0 24px 50px rgba(48, 36, 16, .28), inset 0 0 0 1px rgba(196, 164, 96, .35);
 }
-.leaf-b { left: 72%; animation-delay: -11s; animation-duration: 34s; }
-.leaf-b path { fill: #c4a15a; }
-:root[data-theme="night"] .leaf-fall { opacity: 0; }
-.firefly { width: 6px; height: 6px; border-radius: 999px; background: #f6e7b2; box-shadow: 0 0 10px #f6e7b2; opacity: 0; }
-:root[data-theme="night"] .firefly { opacity: 1; }
-.f1 { top: 30%; left: 22%; animation: firefly-drift 6s ease-in-out infinite; }
-.f2 { top: 58%; left: 70%; animation: firefly-drift 7.5s ease-in-out infinite reverse; }
-.f3 { top: 22%; left: 80%; animation: firefly-drift 5.5s ease-in-out infinite 1s; }
-@keyframes leaf-drop { to { transform: translateY(110vh) rotate(80deg); } }
-@keyframes firefly-drift { 50% { transform: translate(18px, -24px); opacity: .35; } }
-.leaf-c { left: 46%; animation-delay: -5s; width: 8px; height: 12px; }
-.cloud-drift {
-  position: absolute; top: 8%; left: -18%;
-  width: 180px; height: 70px;
-  animation: cloud-move 90s linear infinite;
+.auth-panel h1 { margin: 0; text-align: center; font-size: clamp(1.85rem, 3vw, 2.35rem); line-height: 1.15; color: #1c3d2e; font-weight: 560; }
+.auth-panel h1 span { display: block; }
+.auth-vines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.auth-divider { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0 16px; color: #8d7344; }
+.auth-divider span { width: 54px; height: 1px; background: linear-gradient(90deg, transparent, #c4a15a, transparent); }
+.auth-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; text-align: left; }
+.auth-label { display: inline-flex; align-items: center; gap: 6px; font-size: .92rem; color: #243f32; }
+.auth-input { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 12px; background: #fffaf1; border: 1px solid #d2c09a; color: #6d5a3a; }
+.auth-input input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 10px 0; color: #1c3d2e; }
+.auth-input input:focus { outline: none; }
+.auth-input:focus-within { border-color: #1f4d32; box-shadow: 0 0 0 3px rgba(31, 77, 50, .16); }
+.auth-eye { border: 0; background: transparent; color: #6d5a3a; cursor: pointer; display: grid; place-items: center; padding: 4px; }
+.auth-options { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 2px 0 12px; font-size: .92rem; }
+.auth-remember { display: inline-flex; align-items: center; gap: 8px; }
+.auth-options a, .auth-footer a { color: #1f4d32; font-weight: 650; }
+.auth-error { margin: 0 0 10px; color: #8d3d3d; text-align: center; }
+.auth-note { margin: 0 0 10px; text-align: center; }
+.auth-submit {
+  width: 100%; min-height: 48px; border: 0; cursor: pointer;
+  border-radius: 999px; background: #1f4d32; color: #f7f1e4;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--font-serif); font-size: 1.15rem;
+  box-shadow: 0 10px 18px rgba(20, 48, 32, .22);
 }
-.cloud-b { top: 18%; width: 140px; animation-duration: 120s; animation-delay: -40s; }
-:root[data-theme="night"] .cloud-drift { opacity: 0; }
-@keyframes cloud-move { to { transform: translateX(130vw); } }
+.auth-submit:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08); }
+.auth-submit:active:not(:disabled) { transform: translateY(1px) scale(.99); }
+.auth-submit:disabled { opacity: .72; cursor: progress; }
+.auth-footer { margin-top: 14px; text-align: center; }
+@media (min-width: 1000px) {
+  .auth-panel { width: min(760px, 46vw); min-height: calc(100vh - 16px); }
+}
+@media (max-width: 720px) {
+  .auth-panel { width: min(460px, calc(100vw - 16px)); padding: 26px 16px 16px; border-radius: 28px; min-height: 0; }
+  .auth-scene img { object-position: 30% center; }
+}
 .bell-wrap { position: relative; }
 .notice-pop {
   position: absolute; top: calc(100% + 8px); right: 0; z-index: 40;
