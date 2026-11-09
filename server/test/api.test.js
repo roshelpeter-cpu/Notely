@@ -20,15 +20,40 @@ const server = app.listen(0);
 const { port } = server.address();
 const base = `http://127.0.0.1:${port}`;
 
+let cookie = '';
+
 async function api(pathname, options = {}) {
+  const headers = { 'content-type': 'application/json', 'x-notely-request': '1' };
+  const jar = options.cookie === undefined ? cookie : options.cookie;
+  if (jar) headers.cookie = jar;
   const response = await fetch(base + pathname, {
     method: options.method || 'GET',
-    headers: { 'content-type': 'application/json' },
+    headers,
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
   });
   const json = await response.json();
-  return { status: response.status, json };
+  let next = jar || '';
+  for (const line of response.headers.getSetCookie?.() || []) {
+    const pair = line.split(';')[0];
+    if (pair.startsWith('notely_session=')) next = pair.includes('notely_session=;') || /Max-Age=0/i.test(line) ? '' : pair;
+  }
+  if (options.cookie === undefined) cookie = next;
+  return { status: response.status, json, cookie: next };
 }
+
+test.before(async () => {
+  const registered = await api('/api/auth/register', {
+    method: 'POST',
+    body: {
+      displayName: 'Keeper',
+      email: 'keeper@example.com',
+      password: 'forest-path-19',
+      confirmPassword: 'forest-path-19',
+    },
+  });
+  assert.equal(registered.status, 201);
+  assert.equal(registered.json.data.user.email, 'keeper@example.com');
+});
 
 function doc(text) {
   return {
@@ -310,6 +335,60 @@ test('data remains after the database connection is reopened', async () => {
   const again = await api(`/api/notes/${created.json.data.id}`);
   assert.equal(again.status, 200);
   assert.match(again.json.data.contentText, /survive a restart/);
+});
+
+test('keeps accounts separate and resets a password once', async () => {
+  const locked = await api('/api/notes', { cookie: '' });
+  assert.equal(locked.status, 401);
+
+  const mine = await api('/api/notes', { method: 'POST', body: { title: 'Private path', contentJson: doc('Only the keeper.') } });
+  const other = await api('/api/auth/register', {
+    method: 'POST',
+    cookie: '',
+    body: {
+      displayName: 'Visitor',
+      email: 'visitor@example.com',
+      password: 'lantern-walk-22',
+      confirmPassword: 'lantern-walk-22',
+    },
+  });
+  assert.equal(other.status, 201);
+  const denied = await api(`/api/notes/${mine.json.data.id}`, { cookie: other.cookie });
+  assert.equal(denied.status, 404);
+  const duplicate = await api('/api/auth/register', {
+    method: 'POST',
+    cookie: '',
+    body: {
+      displayName: 'Keeper',
+      email: 'keeper@example.com',
+      password: 'forest-path-19',
+      confirmPassword: 'forest-path-19',
+    },
+  });
+  assert.equal(duplicate.status, 409);
+
+  const forgot = await api('/api/auth/forgot', { method: 'POST', cookie: '', body: { email: 'visitor@example.com' } });
+  assert.equal(forgot.status, 200);
+  assert.ok(forgot.json.data.devResetPath);
+  const token = new URL(forgot.json.data.devResetPath, 'http://localhost').searchParams.get('token');
+  const reset = await api('/api/auth/reset', {
+    method: 'POST',
+    cookie: '',
+    body: { token, password: 'new-lantern-22', confirmPassword: 'new-lantern-22' },
+  });
+  assert.equal(reset.status, 200);
+  const again = await api('/api/auth/reset', {
+    method: 'POST',
+    cookie: '',
+    body: { token, password: 'new-lantern-22', confirmPassword: 'new-lantern-22' },
+  });
+  assert.equal(again.status, 400);
+  const signedIn = await api('/api/auth/login', {
+    method: 'POST',
+    cookie: '',
+    body: { email: 'visitor@example.com', password: 'new-lantern-22' },
+  });
+  assert.equal(signedIn.status, 200);
 });
 
 test('streak math walks consecutive local days', () => {
