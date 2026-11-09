@@ -31,9 +31,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const theme = resolveTheme(setting, prefersDark)
   const painted = useRef(false)
   const chosenHere = useRef(false)
+  const session = useQuery({ queryKey: ['session'], queryFn: api.session, retry: false })
   const preferences = useQuery({
     queryKey: ['preferences'],
     queryFn: ({ signal }) => api.preferences({ signal }),
+    enabled: Boolean(session.data?.user),
   })
 
   function chooseSetting(next: ThemeSetting) {

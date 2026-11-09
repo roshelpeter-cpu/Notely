@@ -2,6 +2,17 @@ export interface Profile {
   id: number
   displayName: string
   tagline: string
+  email?: string
+  avatar?: string | null
+  createdAt: string
+}
+
+export interface SessionUser {
+  id: number
+  email: string
+  displayName: string
+  tagline: string
+  avatar: string | null
   createdAt: string
 }
 

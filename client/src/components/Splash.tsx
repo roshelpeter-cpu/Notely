@@ -1,31 +1,32 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { SceneArt } from './scenery'
 import { QuillMark } from './world'
 
-export function Splash({ onDone }: { onDone: () => void }) {
+export function Splash({ ready, onDone }: { ready: boolean; onDone: () => void }) {
+  const [leaving, setLeaving] = useState(false)
+
   useEffect(() => {
+    if (!ready) return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
       || document.documentElement.dataset.motion === 'reduce'
-    const timer = window.setTimeout(onDone, reduce ? 350 : 2100)
+    const wait = reduce ? 250 : 900
+    const timer = window.setTimeout(() => {
+      setLeaving(true)
+      window.setTimeout(onDone, reduce ? 0 : 420)
+    }, wait)
     return () => window.clearTimeout(timer)
-  }, [onDone])
+  }, [onDone, ready])
 
   return (
-    <div className="splash" role="status" aria-live="polite" aria-label="Opening Notely">
+    <div className={`splash ${leaving ? 'is-leaving' : ''}`} role="status" aria-live="polite" aria-label="Opening Notely">
       <SceneArt scene="village" label="A woodland village" />
       <div className="splash-shade" />
       <div className="splash-copy">
         <QuillMark />
         <p className="eyebrow">A space for your thoughts</p>
         <h1>Notely</h1>
-        <div className="splash-bar" aria-hidden="true"><span /></div>
-      </div>
-      <div className="ambience" aria-hidden="true">
-        <span className="leaf-fall" />
-        <span className="leaf-fall leaf-b" />
-        <span className="firefly f1" />
-        <span className="firefly f2" />
-        <span className="firefly f3" />
+        <div className="splash-bar" aria-hidden="true"><span className={ready ? 'is-ready' : ''} /></div>
+        <p className="splash-status">{ready ? 'The gate is open' : 'Opening the woodland'}</p>
       </div>
     </div>
   )

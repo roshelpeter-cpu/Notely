@@ -1,4 +1,5 @@
 import type {
+  SessionUser,
   Activity,
   BackupFile,
   CalendarData,
@@ -35,9 +36,10 @@ export class ApiError extends Error {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers)
   if (options.body && !headers.has('content-type')) headers.set('content-type', 'application/json')
+  headers.set('x-notely-request', '1')
   let response: Response
   try {
-    response = await fetch(path, { ...options, headers })
+    response = await fetch(path, { ...options, headers, credentials: 'include' })
   } catch {
     throw new ApiError(0, 'The woodland path is offline. Your draft is still on this device.')
   }
@@ -67,8 +69,22 @@ function query(params: Record<string, string | number | boolean | null | undefin
 }
 
 export const api = {
+  session: () => request<{ user: SessionUser | null }>('/api/auth/session'),
+  register: (body: { displayName: string; email: string; password: string; confirmPassword: string }) =>
+    request<{ user: SessionUser }>('/api/auth/register', { method: 'POST', body: JSON.stringify(body) }),
+  login: (body: { email: string; password: string; remember?: boolean }) =>
+    request<{ user: SessionUser }>('/api/auth/login', { method: 'POST', body: JSON.stringify(body) }),
+  logout: () => request<{ ok: boolean }>('/api/auth/logout', { method: 'POST' }),
+  forgotPassword: (email: string) =>
+    request<{ message: string; devResetPath?: string }>('/api/auth/forgot', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (body: { token: string; password: string; confirmPassword: string }) =>
+    request<{ message: string }>('/api/auth/reset', { method: 'POST', body: JSON.stringify(body) }),
+  changePassword: (body: { currentPassword: string; password: string; confirmPassword: string }) =>
+    request<{ message: string }>('/api/auth/password', { method: 'POST', body: JSON.stringify(body) }),
+  deleteAccount: (body: { password: string; confirm: string }) =>
+    request<{ deleted: boolean }>('/api/auth/account', { method: 'DELETE', body: JSON.stringify(body) }),
   profile: () => request<Profile>('/api/profile'),
-  updateProfile: (body: Partial<Pick<Profile, 'displayName' | 'tagline'>>) =>
+  updateProfile: (body: Partial<Pick<Profile, 'displayName' | 'tagline' | 'avatar'>>) =>
     request<Profile>('/api/profile', { method: 'PATCH', body: JSON.stringify(body) }),
   workspaces: () => request<Workspace[]>('/api/workspaces'),
   createWorkspace: (body: { name: string; description?: string }) =>
@@ -83,6 +99,7 @@ export const api = {
     request<Folder>(`/api/folders/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteFolder: (id: number) => request<{ id: number }>(`/api/folders/${id}`, { method: 'DELETE' }),
   notebooks: (workspaceId: number) => request<Notebook[]>(`/api/notebooks${query({ workspaceId })}`),
+  notebook: (id: number) => request<Notebook>(`/api/notebooks/${id}`),
   createNotebook: (body: Partial<Notebook> & { name: string; workspaceId: number }) =>
     request<Notebook>('/api/notebooks', { method: 'POST', body: JSON.stringify(body) }),
   updateNotebook: (id: number, body: Partial<Notebook>) =>
