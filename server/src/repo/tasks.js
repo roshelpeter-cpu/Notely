@@ -17,7 +17,7 @@ import {
   parseLimit,
   assertDate,
 } from '../util.js';
-import { assertNote, assertTags, logActivity, resolveWorkspaceId } from './shared.js';
+import { assertNote, assertTags, logActivity, ownWorkspace, resolveWorkspaceId } from './shared.js';
 
 function mapTask(row, tags = []) {
   return {
@@ -77,6 +77,7 @@ function taskRow(id) {
 function requireTask(id, { allowDeleted = false } = {}) {
   const row = taskRow(parseId(id, 'Task'));
   if (!row || (!allowDeleted && row.deleted_at)) throw new HttpError(404, 'Task not found.');
+  ownWorkspace(row.workspace_id);
   return row;
 }
 

@@ -12,7 +12,9 @@ import {
   nowIso,
   parseId,
 } from '../util.js';
-import { assertFolder, logActivity, newRowId, resolveWorkspaceId, touchWorkspace, workspaceById } from './shared.js';
+import { updateAccount } from '../auth/accounts.js';
+import { currentUser } from '../auth/context.js';
+import { assertFolder, logActivity, newRowId, ownWorkspace, resolveWorkspaceId, touchWorkspace, workspaceById } from './shared.js';
 
 function mapWorkspace(row) {
   return {
@@ -32,9 +34,10 @@ export function listWorkspaces() {
       `SELECT w.*,
         (SELECT COUNT(*) FROM notes n WHERE n.workspace_id = w.id AND n.deleted_at IS NULL AND n.is_archived = 0) AS note_count
        FROM workspaces w
+       WHERE w.user_id = ?
        ORDER BY w.is_default DESC, w.name COLLATE NOCASE`,
     )
-    .all()
+    .all(currentUser().id)
     .map(mapWorkspace);
 }
 
@@ -43,28 +46,29 @@ export function createWorkspace(input) {
   const description = cleanText(input.description, { label: 'Description', max: 240 });
   const now = nowIso();
   const makeDefault = input.isDefault ? 1 : 0;
+  const user = currentUser();
   const id = tx(() => {
-    if (makeDefault) getDb().prepare('UPDATE workspaces SET is_default = 0').run();
-    const hasAny = getDb().prepare('SELECT id FROM workspaces LIMIT 1').get();
+    if (makeDefault) getDb().prepare('UPDATE workspaces SET is_default = 0 WHERE user_id = ?').run(user.id);
+    const hasAny = getDb().prepare('SELECT id FROM workspaces WHERE user_id = ? LIMIT 1').get(user.id);
     const result = getDb()
       .prepare(
-        'INSERT INTO workspaces (name, description, is_default, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO workspaces (name, description, is_default, user_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
       )
-      .run(name, description, makeDefault || !hasAny ? 1 : 0, now, now);
+      .run(name, description, makeDefault || !hasAny ? 1 : 0, user.id, now, now);
     return newRowId(result);
   });
   return listWorkspaces().find((workspace) => workspace.id === id);
 }
 
 export function updateWorkspace(id, input) {
-  const workspaceId = parseId(id, 'Workspace');
+  const workspaceId = ownWorkspace(parseId(id, 'Workspace'));
   const current = workspaceById(workspaceId);
   if (!current) throw new HttpError(404, 'Workspace not found.');
   const name = input.name !== undefined ? cleanText(input.name, { label: 'Workspace name', max: 60, required: true }) : current.name;
   const description = input.description !== undefined ? cleanText(input.description, { label: 'Description', max: 240 }) : current.description;
   const makeDefault = input.isDefault === undefined ? false : asBool(input.isDefault, 'Default');
   tx(() => {
-    if (makeDefault) getDb().prepare('UPDATE workspaces SET is_default = 0').run();
+    if (makeDefault) getDb().prepare('UPDATE workspaces SET is_default = 0 WHERE user_id = ?').run(current.user_id);
     getDb()
       .prepare('UPDATE workspaces SET name = ?, description = ?, is_default = ?, updated_at = ? WHERE id = ?')
       .run(name, description, makeDefault ? 1 : current.is_default, nowIso(), workspaceId);
@@ -73,18 +77,18 @@ export function updateWorkspace(id, input) {
 }
 
 export function deleteWorkspace(id) {
-  const workspaceId = parseId(id, 'Workspace');
+  const workspaceId = ownWorkspace(parseId(id, 'Workspace'));
   const current = workspaceById(workspaceId);
   if (!current) throw new HttpError(404, 'Workspace not found.');
   return tx(() => {
-    const count = getDb().prepare('SELECT COUNT(*) AS count FROM workspaces').get().count;
+    const count = getDb().prepare('SELECT COUNT(*) AS count FROM workspaces WHERE user_id = ?').get(current.user_id).count;
     if (count <= 1) throw new HttpError(400, 'Keep at least one workspace.');
     const noteIds = getDb().prepare('SELECT id FROM notes WHERE workspace_id = ?').all(workspaceId);
     const remove = getDb().prepare('DELETE FROM notes_fts WHERE rowid = ?');
     for (const note of noteIds) remove.run(note.id);
     getDb().prepare('DELETE FROM workspaces WHERE id = ?').run(workspaceId);
     if (current.is_default === 1) {
-      getDb().prepare('UPDATE workspaces SET is_default = 1 WHERE id = (SELECT id FROM workspaces ORDER BY id LIMIT 1)').run();
+      getDb().prepare('UPDATE workspaces SET is_default = 1 WHERE id = (SELECT id FROM workspaces WHERE user_id = ? ORDER BY id LIMIT 1)').run(current.user_id);
     }
     return { id: workspaceId, deleted: true };
   });
@@ -136,6 +140,7 @@ export function updateFolder(id, input) {
   const folderId = parseId(id, 'Folder');
   const current = getDb().prepare('SELECT * FROM folders WHERE id = ?').get(folderId);
   if (!current) throw new HttpError(404, 'Folder not found.');
+  ownWorkspace(current.workspace_id);
   const name = input.name !== undefined ? cleanText(input.name, { label: 'Folder name', max: 60, required: true }) : current.name;
   let parentId = current.parent_id;
   if (input.parentId !== undefined) {
@@ -150,6 +155,7 @@ export function deleteFolder(id) {
   const folderId = parseId(id, 'Folder');
   const current = getDb().prepare('SELECT * FROM folders WHERE id = ?').get(folderId);
   if (!current) throw new HttpError(404, 'Folder not found.');
+  ownWorkspace(current.workspace_id);
   getDb().prepare('DELETE FROM folders WHERE id = ?').run(folderId);
   return { id: folderId, deleted: true };
 }
@@ -189,6 +195,7 @@ export function getNotebook(id) {
   const notebookId = parseId(id, 'Notebook');
   const row = getDb().prepare(`${notebookQuery()} WHERE nb.id = ?`).get(notebookId);
   if (!row) throw new HttpError(404, 'Notebook not found.');
+  ownWorkspace(row.workspace_id);
   return mapNotebook(row);
 }
 
@@ -278,6 +285,7 @@ export function updateTag(id, input) {
   const tagId = parseId(id, 'Tag');
   const current = getDb().prepare('SELECT * FROM tags WHERE id = ?').get(tagId);
   if (!current) throw new HttpError(404, 'Tag not found.');
+  ownWorkspace(current.workspace_id);
   const name = input.name !== undefined ? cleanText(input.name, { label: 'Tag name', max: 40, required: true }) : current.name;
   const color = input.color !== undefined ? choice(input.color, TAG_COLORS, 'Tag colour') : current.color;
   tagClash(current.workspace_id, name, tagId);
@@ -289,6 +297,7 @@ export function deleteTag(id) {
   const tagId = parseId(id, 'Tag');
   const current = getDb().prepare('SELECT * FROM tags WHERE id = ?').get(tagId);
   if (!current) throw new HttpError(404, 'Tag not found.');
+  ownWorkspace(current.workspace_id);
   getDb().prepare('DELETE FROM tags WHERE id = ?').run(tagId);
   return { id: tagId, deleted: true };
 }
@@ -315,8 +324,9 @@ const DEFAULT_PREFERENCES = {
 };
 
 export function getPreferences() {
+  const user = currentUser();
   const stored = {};
-  for (const row of getDb().prepare('SELECT key, value FROM preferences').all()) {
+  for (const row of getDb().prepare('SELECT key, value FROM user_preferences WHERE user_id = ?').all(user.id)) {
     try {
       stored[row.key] = JSON.parse(row.value);
     } catch {
@@ -352,7 +362,13 @@ export function updatePreferences(patch) {
   if (patch.defaultNotebookId !== undefined) {
     next.defaultNotebookId = patch.defaultNotebookId === null ? null : parseId(patch.defaultNotebookId, 'Notebook');
     if (next.defaultNotebookId) {
-      const notebook = getDb().prepare('SELECT id FROM notebooks WHERE id = ?').get(next.defaultNotebookId);
+      const notebook = getDb()
+        .prepare(
+          `SELECT n.id FROM notebooks n
+           JOIN workspaces w ON w.id = n.workspace_id
+           WHERE n.id = ? AND w.user_id = ?`,
+        )
+        .get(next.defaultNotebookId, currentUser().id);
       if (!notebook) throw new HttpError(400, 'The default notebook does not exist.');
     }
   }
@@ -365,25 +381,30 @@ export function updatePreferences(patch) {
       next.dashboard[key] = asBool(patch.dashboard[key], 'Dashboard section');
     }
   }
+  const user = currentUser();
   const upsert = getDb().prepare(
-    'INSERT INTO preferences (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+    'INSERT INTO user_preferences (user_id, key, value) VALUES (?, ?, ?) ON CONFLICT(user_id, key) DO UPDATE SET value = excluded.value',
   );
-  for (const key of keys) upsert.run(key, JSON.stringify(next[key]));
+  for (const key of keys) upsert.run(user.id, key, JSON.stringify(next[key]));
   return getPreferences();
 }
 
 export function getProfile() {
-  const row = getDb().prepare('SELECT * FROM profile WHERE id = 1').get();
+  const user = currentUser();
+  const row = getDb().prepare('SELECT * FROM users WHERE id = ?').get(user.id);
   if (!row) throw new HttpError(404, 'Profile not found.');
-  return { id: 1, displayName: row.display_name, tagline: row.tagline, createdAt: row.created_at };
+  return {
+    id: row.id,
+    displayName: row.display_name,
+    tagline: row.tagline,
+    email: row.email,
+    avatar: row.avatar || null,
+    createdAt: row.created_at,
+  };
 }
 
 export function updateProfile(input) {
-  const current = getProfile();
-  const displayName = input.displayName !== undefined
-    ? cleanText(input.displayName, { label: 'Name', max: 40, required: true })
-    : current.displayName;
-  const tagline = input.tagline !== undefined ? cleanText(input.tagline, { label: 'Tagline', max: 140 }) : current.tagline;
-  getDb().prepare('UPDATE profile SET display_name = ?, tagline = ? WHERE id = 1').run(displayName, tagline);
+  const next = updateAccount(input);
+  getDb().prepare('UPDATE profile SET display_name = ?, tagline = ? WHERE id = 1').run(next.displayName, next.tagline);
   return getProfile();
 }

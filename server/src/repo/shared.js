@@ -1,3 +1,4 @@
+import { currentUser } from '../auth/context.js';
 import { getDb, insertedId } from '../db.js';
 import { migrate } from '../db.js';
 import { HttpError } from '../errors.js';
@@ -21,17 +22,22 @@ export function ensureFoundation() {
   }
 }
 
+export function ownWorkspace(workspaceId) {
+  const user = currentUser();
+  const row = getDb().prepare('SELECT id FROM workspaces WHERE id = ? AND user_id = ?').get(workspaceId, user.id);
+  if (!row) throw new HttpError(404, 'Workspace not found.');
+  return workspaceId;
+}
+
 export function resolveWorkspaceId(value) {
+  const user = currentUser();
   const db = getDb();
   if (value !== undefined && value !== null && value !== '') {
-    const id = parseId(value, 'Workspace');
-    const row = db.prepare('SELECT id FROM workspaces WHERE id = ?').get(id);
-    if (!row) throw new HttpError(404, 'Workspace not found.');
-    return id;
+    return ownWorkspace(parseId(value, 'Workspace'));
   }
   const row =
-    db.prepare('SELECT id FROM workspaces WHERE is_default = 1 ORDER BY id LIMIT 1').get() ||
-    db.prepare('SELECT id FROM workspaces ORDER BY id LIMIT 1').get();
+    db.prepare('SELECT id FROM workspaces WHERE user_id = ? AND is_default = 1 ORDER BY id LIMIT 1').get(user.id) ||
+    db.prepare('SELECT id FROM workspaces WHERE user_id = ? ORDER BY id LIMIT 1').get(user.id);
   if (!row) throw new HttpError(400, 'Create a workspace first.');
   return row.id;
 }

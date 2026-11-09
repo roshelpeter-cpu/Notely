@@ -13,9 +13,11 @@ import {
   updateProfile,
   updateWorkspace,
 } from './repo/organise.js';
+import { authStore } from './auth/context.js';
+import { hashPassword } from './auth/passwords.js';
 import { ensureFoundation } from './repo/shared.js';
 import { createTask } from './repo/tasks.js';
-import { localDate } from './util.js';
+import { localDate, nowIso } from './util.js';
 
 function daysAgo(amount, hour = 9) {
   const date = new Date();
@@ -66,8 +68,32 @@ function doc(...nodes) {
   return { type: 'doc', content: nodes };
 }
 
+function ensureSeedUser() {
+  const db = getDb();
+  let user = db.prepare('SELECT * FROM users WHERE email = ?').get('keeper@notely.local');
+  if (!user) {
+    const now = nowIso();
+    const password = process.env.NOTELY_SEED_PASSWORD || 'woodland-sample-1';
+    const result = db
+      .prepare(
+        'INSERT INTO users (email, password_hash, display_name, tagline, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+      )
+      .run('keeper@notely.local', hashPassword(password), 'Roshel', 'Keeper of a quiet woodland library', now, now);
+    user = db.prepare('SELECT * FROM users WHERE id = ?').get(Number(result.lastInsertRowid));
+  }
+  db.prepare('UPDATE workspaces SET user_id = ? WHERE user_id IS NULL').run(user.id);
+  return user;
+}
+
 export function seed() {
   ensureFoundation();
+  const user = ensureSeedUser();
+  authStore.enterWith({
+    id: user.id,
+    email: user.email,
+    displayName: user.display_name,
+    tagline: user.tagline,
+  });
   updateProfile({
     displayName: 'Roshel',
     tagline: 'Keeper of a quiet woodland library',

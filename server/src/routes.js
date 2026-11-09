@@ -1,3 +1,15 @@
+import {
+  changePassword,
+  clearSessionCookie,
+  deleteAccount,
+  loginAccount,
+  logoutAccount,
+  registerAccount,
+  requestReset,
+  resetPassword,
+  sessionCookie,
+} from './auth/accounts.js';
+import { authStore } from './auth/context.js';
 import { HttpError, asyncHandler } from './errors.js';
 import { assertDate, parseId } from './util.js';
 import { calendarItems } from './repo/notes.js';
@@ -65,6 +77,31 @@ export function registerRoutes(app) {
 
   route('get', '/api/health', (_req, res) => {
     send(res, { ok: true, service: 'notely' });
+  });
+
+  route('get', '/api/auth/session', (_req, res) => send(res, { user: authStore.getStore() || null }));
+  route('post', '/api/auth/register', (req, res) => {
+    const result = registerAccount(bodyOf(req));
+    res.setHeader('Set-Cookie', sessionCookie(result.token, result.maxAge));
+    send(res, { user: result.user }, 201);
+  });
+  route('post', '/api/auth/login', (req, res) => {
+    const result = loginAccount(req, bodyOf(req));
+    res.setHeader('Set-Cookie', sessionCookie(result.token, result.maxAge));
+    send(res, { user: result.user });
+  });
+  route('post', '/api/auth/logout', (req, res) => {
+    logoutAccount(req);
+    res.setHeader('Set-Cookie', clearSessionCookie());
+    send(res, { ok: true });
+  });
+  route('post', '/api/auth/forgot', (req, res) => send(res, requestReset(bodyOf(req))));
+  route('post', '/api/auth/reset', (req, res) => send(res, resetPassword(bodyOf(req))));
+  route('post', '/api/auth/password', (req, res) => send(res, changePassword(bodyOf(req))));
+  route('delete', '/api/auth/account', (req, res) => {
+    const result = deleteAccount(bodyOf(req), req);
+    res.setHeader('Set-Cookie', clearSessionCookie());
+    send(res, result);
   });
 
   route('get', '/api/profile', (_req, res) => send(res, getProfile()));

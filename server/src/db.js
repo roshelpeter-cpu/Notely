@@ -37,7 +37,13 @@ export function closeDb() {
 
 export function migrate() {
   const sql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
-  getDb().exec(sql);
+  const db = getDb();
+  db.exec(sql);
+  const columns = db.prepare('PRAGMA table_info(workspaces)').all();
+  if (!columns.some((column) => column.name === 'user_id')) {
+    db.exec('ALTER TABLE workspaces ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE');
+  }
+  db.exec('CREATE INDEX IF NOT EXISTS idx_workspaces_user ON workspaces(user_id)');
 }
 
 export function resetDatabase() {

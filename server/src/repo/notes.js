@@ -15,7 +15,7 @@ import {
   parseLimit,
   toFtsQuery,
 } from '../util.js';
-import { assertFolder, assertNotebook, assertTags, logActivity, resolveWorkspaceId } from './shared.js';
+import { assertFolder, assertNotebook, assertTags, logActivity, ownWorkspace, resolveWorkspaceId } from './shared.js';
 
 const NOTE_FROM = `
   FROM notes n
@@ -94,6 +94,7 @@ export function getNoteRow(id) {
 function requireNote(id, { allowDeleted = false } = {}) {
   const row = getNoteRow(id);
   if (!row || (!allowDeleted && row.deleted_at)) throw new HttpError(404, 'Note not found.');
+  ownWorkspace(row.workspace_id);
   return row;
 }
 
