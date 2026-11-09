@@ -22,36 +22,73 @@ export function SidebarVine() {
   )
 }
 
-function Leaf({ className }: { className: string }) {
-  return (
-    <svg className={className} viewBox="0 0 32 48" aria-hidden="true">
-      <path d="M16 2c8 8 12 16 10 28-6 2-12 0-16-4 2-8 2-16 6-24z" fill="#6f8f55" />
-      <path d="M16 8c1 10 1 18 0 30" fill="none" stroke="#3d5a32" strokeWidth="1" />
-    </svg>
-  )
-}
+const LEAF_SHAPES = [
+  { d: 'M16 2c8 8 12 16 10 28-6 2-12 0-16-4 2-8 2-16 6-24z', fill: '#6f8f55' },
+  { d: 'M18 4c7 9 5 18-1 30-8-5-13-14-9-26 3-3 7-4 10-4z', fill: '#c4a15a' },
+  { d: 'M14 3c11 5 15 16 7 31-11-1-16-12-13-27 2-2 4-4 6-4z', fill: '#3e7a54' },
+  { d: 'M20 2c3 12 1 22-5 34-7-8-11-18-6-30 3-3 8-4 11-4z', fill: '#8d5a32' },
+]
 
-function Cloud({ className }: { className: string }) {
+const LEAVES = Array.from({ length: 22 }, (_, index) => ({
+  shape: index % LEAF_SHAPES.length,
+  left: `${(index * 13 + 3) % 100}%`,
+  delay: `${-(index * 0.62)}s`,
+  duration: `${8 + (index % 6) * 1.35}s`,
+  size: 14 + (index % 5) * 6,
+  drift: index % 2 === 0 ? 'sway-a' : 'sway-b',
+}))
+
+const FIREFLIES = Array.from({ length: 16 }, (_, index) => ({
+  left: `${(index * 17 + 4) % 96}%`,
+  top: `${8 + (index * 11) % 78}%`,
+  delay: `${-(index * 0.45)}s`,
+  duration: `${5.5 + (index % 5) * 0.8}s`,
+}))
+
+const LANTERNS = [
+  [7, 16], [16, 38], [9, 64], [28, 22], [42, 12], [58, 18],
+  [74, 14], [86, 32], [92, 58], [68, 72], [34, 76], [50, 48],
+]
+
+const STARS = Array.from({ length: 18 }, (_, index) => ({
+  left: `${(index * 19 + 6) % 100}%`,
+  top: `${(index * 7) % 42}%`,
+  delay: `${(index % 7) * 0.35}s`,
+}))
+
+export function WoodlandEffects() {
   return (
-    <svg className={className} viewBox="0 0 180 70" aria-hidden="true">
-      <ellipse cx="58" cy="40" rx="38" ry="18" fill="rgba(255,255,255,.72)" />
-      <ellipse cx="96" cy="32" rx="34" ry="20" fill="rgba(255,255,255,.8)" />
-      <ellipse cx="128" cy="40" rx="30" ry="16" fill="rgba(255,255,255,.68)" />
-    </svg>
+    <div className="woodland-effects" aria-hidden="true">
+      {LEAVES.map((leaf, index) => {
+        const shape = LEAF_SHAPES[leaf.shape]
+        return (
+          <svg
+            key={index}
+            className={`falling-leaf ${leaf.drift}`}
+            viewBox="0 0 32 48"
+            style={{ left: leaf.left, animationDelay: leaf.delay, animationDuration: leaf.duration, width: leaf.size, height: leaf.size * 1.5 }}
+          >
+            <path d={shape.d} fill={shape.fill} />
+          </svg>
+        )
+      })}
+      {STARS.map((star, index) => (
+        <span key={`star-${index}`} className="night-star" style={{ left: star.left, top: star.top, animationDelay: star.delay }} />
+      ))}
+      {FIREFLIES.map((fly, index) => (
+        <span key={`fly-${index}`} className="firefly" style={{ left: fly.left, top: fly.top, animationDelay: fly.delay, animationDuration: fly.duration }} />
+      ))}
+      {LANTERNS.map(([left, top], index) => (
+        <span key={`lantern-${index}`} className="lantern-glow" style={{ left: `${left}%`, top: `${top}%`, animationDelay: `${index * 0.27}s`, animationDuration: `${1.8 + (index % 4) * 0.45}s` }} />
+      ))}
+    </div>
   )
 }
 
 export function Ambience() {
   return (
     <div className="ambience" aria-hidden="true">
-      <Leaf className="leaf-fall" />
-      <Leaf className="leaf-fall leaf-b" />
-      <Leaf className="leaf-fall leaf-c" />
-      <span className="firefly f1" />
-      <span className="firefly f2" />
-      <span className="firefly f3" />
-      <Cloud className="cloud-drift" />
-      <Cloud className="cloud-drift cloud-b" />
+      <WoodlandEffects />
     </div>
   )
 }
