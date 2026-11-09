@@ -86,7 +86,13 @@ All responses use `{ data }` and errors use `{ error: { message } }`.
 | Transfer | `GET /api/export/json`, `GET /api/export/markdown`, `POST /api/import/json`, `POST /api/import/markdown` |
 | Preferences | `GET/PATCH /api/preferences` |
 
-Notely is a single-user local app. There is no login and no admin role. Do not expose the API port on a shared network.
+Notely accounts are local. Passwords are hashed with scrypt. Sessions live in an HttpOnly cookie. Each workspace belongs to one user, and private routes refuse another user's ids.
+
+The first account created on an existing library claims the notes that were saved before accounts existed. Later accounts start with their own empty workspace.
+
+Password reset does not send email unless you add a mail service. In development, `NOTELY_DEV_RESET=1` returns a one-time local link. Set it to `0` in production. The sample seed account is `keeper@notely.local` with `NOTELY_SEED_PASSWORD`.
+
+Do not expose the API port on a shared network.
 
 ## Screenshots
 
