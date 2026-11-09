@@ -26,7 +26,7 @@ export default function InsightsPage() {
           <div className="grid-2" style={{ marginTop: 16 }}>
             <section className="panel">
               <h2>Notes over time</h2>
-              <div style={{ height: 240 }}>
+              <div className="insight-chart">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={data.notesByWeek}>
                     <XAxis dataKey="weekStart" tick={{ fill: 'var(--muted)', fontSize: 12 }} />
@@ -39,7 +39,7 @@ export default function InsightsPage() {
             </section>
             <section className="panel">
               <h2>Words by weekday</h2>
-              <div style={{ height: 240 }}>
+              <div className="insight-chart">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data.weekdays}>
                     <XAxis dataKey="day" tick={{ fill: 'var(--muted)', fontSize: 12 }} />

@@ -22,16 +22,36 @@ export function SidebarVine() {
   )
 }
 
+function Leaf({ className }: { className: string }) {
+  return (
+    <svg className={className} viewBox="0 0 32 48" aria-hidden="true">
+      <path d="M16 2c8 8 12 16 10 28-6 2-12 0-16-4 2-8 2-16 6-24z" fill="#6f8f55" />
+      <path d="M16 8c1 10 1 18 0 30" fill="none" stroke="#3d5a32" strokeWidth="1" />
+    </svg>
+  )
+}
+
+function Cloud({ className }: { className: string }) {
+  return (
+    <svg className={className} viewBox="0 0 180 70" aria-hidden="true">
+      <ellipse cx="58" cy="40" rx="38" ry="18" fill="rgba(255,255,255,.72)" />
+      <ellipse cx="96" cy="32" rx="34" ry="20" fill="rgba(255,255,255,.8)" />
+      <ellipse cx="128" cy="40" rx="30" ry="16" fill="rgba(255,255,255,.68)" />
+    </svg>
+  )
+}
+
 export function Ambience() {
   return (
     <div className="ambience" aria-hidden="true">
-      <span className="leaf-fall" />
-      <span className="leaf-fall leaf-b" />
-      <span className="leaf-fall leaf-c" />
+      <Leaf className="leaf-fall" />
+      <Leaf className="leaf-fall leaf-b" />
+      <Leaf className="leaf-fall leaf-c" />
       <span className="firefly f1" />
       <span className="firefly f2" />
       <span className="firefly f3" />
-      <span className="cloud-drift" />
+      <Cloud className="cloud-drift" />
+      <Cloud className="cloud-drift cloud-b" />
     </div>
   )
 }
