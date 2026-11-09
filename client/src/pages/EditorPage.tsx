@@ -43,6 +43,7 @@ export default function EditorPage() {
   const loadedId = useRef<number | null>(null)
   const [seenId, setSeenId] = useState(noteId)
   const [dirty, setDirty] = useState(false)
+  const [shelves, setShelves] = useState(true)
   if (seenId !== noteId) {
     setSeenId(noteId)
     setDoc(null)
@@ -140,13 +141,17 @@ export default function EditorPage() {
   if (note.isError || !note.data) return <p className="page">That note is not on the shelf.</p>
 
   return (
-    <div className={`page page-cottage editor-layout ${ui.focus ? 'is-focus' : ''}`}>
+    <div className={`page page-cottage editor-layout ${ui.focus || !shelves ? 'is-focus' : ''}`}>
       <section className="editor-sheet card">
         <div className="editor-banner"><SceneArt scene="cottage" crop="top" /></div>
         <div className="spread">
-          <Link to="/app/notes">Back to the library</Link>
+          <div>
+            <Link to="/app/library">Back to the library</Link>
+            {note.data.notebookName && <p className="muted">{note.data.notebookName}</p>}
+          </div>
           <div className="quick">
             <span className={status.startsWith('Saved') ? 'save-ok' : 'save-bad'}>{status}</span>
+            <button className="btn btn-small btn-ghost" type="button" onClick={() => setShelves((value) => !value)}>{shelves ? 'Hide shelves' : 'Show shelves'}</button>
             <button className="btn btn-small btn-ghost" type="button" onClick={() => void save()}>Save</button>
             <button className="icon-btn" type="button" aria-label="Focus mode" onClick={() => ui.setFocus(!ui.focus)}>{ui.focus ? <Minimize2 size={16} /> : <Maximize2 size={16} />}</button>
           </div>

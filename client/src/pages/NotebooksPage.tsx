@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ApiError, api } from '../api/client'
 import type { Notebook } from '../api/types'
 import { NotebookDialog } from '../components/shell'
@@ -11,7 +11,7 @@ import { useUi } from '../context/UiContext'
 import { useWorkspace } from '../context/WorkspaceContext'
 import { TAG_COLORS, toneClass } from '../lib/options'
 
-export default function NotebooksPage() {
+export default function NotebooksPage({ embedded = false, section = 'all' }: { embedded?: boolean; section?: 'all' | 'notebooks' | 'folders' | 'tags' }) {
   const { workspaceId } = useWorkspace()
   const queryClient = useQueryClient()
   const { notify } = useToast()
@@ -46,16 +46,19 @@ export default function NotebooksPage() {
 
   return (
     <div className="page page-books">
-      <PageHead eyebrow="Collections" title="Notebooks" scene="library" crop="bottom" actions={<button className="btn btn-primary" type="button" onClick={() => setOpen(true)}>New notebook</button>} />
-      <div className="grid-2">
-        <div>
+      {!embedded && <PageHead eyebrow="Collections" title="Notebooks" scene="library" crop="bottom" actions={<button className="btn btn-primary" type="button" onClick={() => setOpen(true)}>New notebook</button>} />}
+      {embedded && section !== 'folders' && section !== 'tags' && <div className="spread"><h2>Notebooks</h2><button className="btn btn-primary" type="button" onClick={() => setOpen(true)}>New notebook</button></div>}
+      <div className={section === 'folders' || section === 'tags' ? 'stack' : 'grid-2'}>
+        {section !== 'folders' && section !== 'tags' && <div>
           {[...grouped.entries()].map(([folder, books]) => (
-            <section key={folder} className="panel">
+            <section key={folder} className="shelf">
               <h2>{folder}</h2>
               <div className="book-grid">
                 {books.map((notebook) => (
                   <article key={notebook.id} className="book">
-                    <div className={`book-cover ${toneClass(notebook.color)}`}><NotebookCover cover={notebook.cover} /></div>
+                    <Link className={`book-cover ${toneClass(notebook.color)}`} to={`/app/library/notebooks/${notebook.id}`} aria-label={`Open ${notebook.name}`}>
+                      <NotebookCover cover={notebook.cover} />
+                    </Link>
                     <strong>{notebook.name}</strong>
                     <p className="muted">{notebook.description || 'A quiet volume.'}</p>
                     <small>{notebook.noteCount} notes</small>
@@ -74,9 +77,9 @@ export default function NotebooksPage() {
             </section>
           ))}
           {notebooks.data?.length === 0 && <div className="empty card"><h2>No volumes yet</h2><p>Bind a notebook and give it a cover.</p></div>}
-        </div>
-        <aside className="stack">
-          <section className="panel org-panel">
+        </div>}
+        {(section === 'all' || section === 'folders' || section === 'tags') && <aside className="stack">
+          {section !== 'tags' && <section className="panel org-panel">
             <h2>Folders</h2>
             <p className="muted">A folder keeps related volumes on the same shelf.</p>
             {(folders.data || []).length === 0 && <p className="empty-inline">No folders yet.</p>}
@@ -128,8 +131,8 @@ export default function NotebooksPage() {
               <input aria-label="New folder" placeholder="New folder" value={folderName} onChange={(event) => setFolderName(event.target.value)} />
               <button className="btn btn-small" type="submit">Add</button>
             </form>
-          </section>
-          <section className="panel org-panel">
+          </section>}
+          {section !== 'folders' && <section className="panel org-panel">
             <h2>Tags</h2>
             <p className="muted">Tags mark a note without moving it to another book.</p>
             {(tags.data || []).length === 0 && <p className="empty-inline">No tags yet.</p>}
@@ -174,8 +177,8 @@ export default function NotebooksPage() {
               <input aria-label="New tag" placeholder="New tag" value={tagName} onChange={(event) => setTagName(event.target.value)} />
               <button className="btn btn-small" type="submit">Add</button>
             </form>
-          </section>
-        </aside>
+          </section>}
+        </aside>}
       </div>
       {(open || editing) && (
         <NotebookDialog

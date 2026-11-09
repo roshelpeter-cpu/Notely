@@ -35,7 +35,7 @@ export default function HomePage() {
     } else if (kind === 'daily') {
       const note = await api.daily({ workspaceId, date: today })
       navigate(`/app/notes/${note.id}`)
-    } else if (kind === 'notebook') navigate('/app/notebooks?new=1')
+    } else if (kind === 'notebook') navigate('/app/library?view=notebooks&new=1')
     else navigate('/app/tasks?new=1')
     await queryClient.invalidateQueries()
   }
@@ -101,10 +101,10 @@ export default function HomePage() {
           )}
           {show('notebooks') && (
             <section className="panel">
-              <div className="section-head"><h2>Notebooks</h2><Link to="/app/notebooks">All books</Link></div>
+              <div className="section-head"><h2>Notebooks</h2><Link to="/app/library?view=notebooks">All books</Link></div>
               <div className="book-grid">
                 {(notebooks.data || []).slice(0, 4).map((notebook) => (
-                  <Link className="book" key={notebook.id} to={`/app/notes?notebook=${notebook.id}`}>
+                  <Link className="book" key={notebook.id} to={`/app/library/notebooks/${notebook.id}`}>
                     <div className={`book-cover ${toneClass(notebook.color)}`}><NotebookCover cover={notebook.cover} /></div>
                     <strong>{notebook.name}</strong>
                     <small className="muted">{notebook.noteCount} notes</small>

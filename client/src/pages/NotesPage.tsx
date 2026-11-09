@@ -9,7 +9,7 @@ import { useUi } from '../context/UiContext'
 import { useWorkspace } from '../context/WorkspaceContext'
 import { NOTE_COLORS } from '../lib/options'
 
-export default function NotesPage() {
+export default function NotesPage({ embedded = false }: { embedded?: boolean }) {
   const { workspaceId, preferences } = useWorkspace()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
@@ -62,17 +62,19 @@ export default function NotesPage() {
 
   return (
     <div className="page page-library">
-      <PageHead
-        eyebrow="Library"
-        title="Notes"
-        scene="library"
-        actions={(
-          <button className="btn btn-primary" type="button" onClick={async () => {
-            const note = await api.createNote({ workspaceId, title: 'Untitled note', notebookId: preferences?.defaultNotebookId || null })
-            navigate(`/app/notes/${note.id}`)
-          }}>New note</button>
-        )}
-      />
+      {!embedded && (
+        <PageHead
+          eyebrow="Library"
+          title="Notes"
+          scene="library"
+          actions={(
+            <button className="btn btn-primary" type="button" onClick={async () => {
+              const note = await api.createNote({ workspaceId, title: 'Untitled note', notebookId: preferences?.defaultNotebookId || null })
+              navigate(`/app/notes/${note.id}`)
+            }}>New note</button>
+          )}
+        />
+      )}
       <div className="filters">
         <input aria-label="Search notes" placeholder="Title or sentence" defaultValue={params.get('q') || ''} onChange={(event) => update('q', event.target.value)} />
         <select aria-label="Notebook" value={params.get('notebook') || ''} onChange={(event) => update('notebook', event.target.value)}>

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Archive,
   Bell,
-  BookMarked,
+  LogOut,
   CalendarDays,
   ChartColumn,
   ChevronLeft,
@@ -32,8 +32,7 @@ import { Ambience, NotebookCover, QuillMark, SidebarVine } from './world'
 
 const NAV = [
   { to: '/app', label: 'Home', icon: Home, end: true },
-  { to: '/app/notes', label: 'Notes', icon: Library, end: false },
-  { to: '/app/notebooks', label: 'Notebooks', icon: BookMarked, end: false },
+  { to: '/app/library', label: 'Library', icon: Library, end: false },
   { to: '/app/tasks', label: 'Tasks', icon: ListChecks, end: false },
   { to: '/app/calendar', label: 'Calendar', icon: CalendarDays, end: false },
   { to: '/app/map', label: 'Knowledge Map', icon: Waypoints, end: false },
@@ -79,6 +78,24 @@ export function AppShell() {
     await queryClient.invalidateQueries({ queryKey: ['notes'] })
     navigate(`/app/notes/${note.id}`)
   }
+
+  useEffect(() => {
+    if (!bell) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setBell(false)
+    }
+    const onPointer = (event: MouseEvent) => {
+      const target = event.target
+      if (target instanceof Element && target.closest('.bell-wrap')) return
+      setBell(false)
+    }
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('mousedown', onPointer)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('mousedown', onPointer)
+    }
+  }, [bell])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -184,11 +201,14 @@ export function AppShell() {
             </NavLink>
           </div>
           <div className="profile-chip">
-            <div className="avatar" aria-hidden="true">{(profile?.displayName || 'N').slice(0, 1)}</div>
+            <div className="avatar" aria-hidden="true">{profile?.avatar ? <img src={profile.avatar} alt="" /> : (profile?.displayName || 'N').slice(0, 1)}</div>
             <div>
-              <strong>{profile?.displayName}</strong>
-              <small>{profile?.tagline}</small>
+              <NavLink to="/app/account"><strong>{profile?.displayName}</strong></NavLink>
+              <small>{profile?.email || profile?.tagline}</small>
             </div>
+            <button className="icon-btn" type="button" aria-label="Log out" onClick={() => void api.logout().then(() => { queryClient.clear(); navigate('/') })}>
+              <LogOut size={16} />
+            </button>
           </div>
         </div>
       </aside>
@@ -200,7 +220,7 @@ export function AppShell() {
           <button className="icon-btn hide-sm" type="button" aria-label="Collapse sidebar" onClick={() => ui.setCollapsed(!ui.collapsed)}>
             <PanelLeft size={18} />
           </button>
-          <form className="search" role="search" onSubmit={(event) => { event.preventDefault(); navigate(`/app/notes?q=${encodeURIComponent(query)}`); setSearchOpen(false) }}>
+          <form className="search" role="search" onSubmit={(event) => { event.preventDefault(); navigate(`/app/library?view=notes&q=${encodeURIComponent(query)}`); setSearchOpen(false) }}>
             <Search size={16} aria-hidden="true" />
             <input
               aria-label="Search notes, notebooks, tags, and tasks"
@@ -212,8 +232,8 @@ export function AppShell() {
             {searchOpen && query.trim().length > 1 && (
               <div className="search-pop">
                 <ResultGroup title="Notes" items={search.data?.notes.map((note) => ({ to: `/app/notes/${note.id}`, label: note.title, detail: note.excerpt }))} />
-                <ResultGroup title="Notebooks" items={search.data?.notebooks.map((notebook) => ({ to: `/app/notes?notebook=${notebook.id}`, label: notebook.name, detail: notebook.description }))} />
-                <ResultGroup title="Tags" items={search.data?.tags.map((tag) => ({ to: `/app/notes?tag=${tag.id}`, label: tag.name }))} />
+                <ResultGroup title="Notebooks" items={search.data?.notebooks.map((notebook) => ({ to: `/app/library/notebooks/${notebook.id}`, label: notebook.name, detail: notebook.description }))} />
+                <ResultGroup title="Tags" items={search.data?.tags.map((tag) => ({ to: `/app/library?view=notes&tag=${tag.id}`, label: tag.name }))} />
                 <ResultGroup title="Tasks" items={search.data?.tasks.map((task) => ({ to: '/app/tasks', label: task.title, detail: task.status }))} />
                 {search.isFetching && <p className="muted">Searching the shelves…</p>}
                 {search.isSuccess && !search.data?.notes.length && !search.data?.notebooks.length && !search.data?.tags.length && !search.data?.tasks.length && <p className="muted">Nothing matches yet.</p>}
@@ -224,21 +244,24 @@ export function AppShell() {
             <button className="btn btn-primary btn-small" type="button" onClick={() => void createNote()}>
               <Plus size={16} /> New note
             </button>
-            <button className="icon-btn" type="button" aria-label="Notifications" onClick={() => { setBell((value) => !value); localStorage.setItem('notely-seen', String(activity.data?.[0]?.id || seen)) }}>
-              <Bell size={16} />
-              {unread > 0 && <span className="sr-only">{unread} new</span>}
-            </button>
-          </div>
-          {bell && (
-            <div className="search-pop" style={{ right: 16, left: 'auto', width: 320, top: 64 }}>
-              <strong>Recent activity</strong>
-              <ul className="activity-list">
-                {(activity.data || []).slice(0, 8).map((item) => (
-                  <li key={item.id}><span>{item.summary}</span><small>{formatWhen(item.createdAt)}</small></li>
-                ))}
-              </ul>
+            <div className="bell-wrap">
+              <button className="icon-btn" type="button" aria-label="Notifications" aria-expanded={bell} onClick={() => { setBell((value) => !value); localStorage.setItem('notely-seen', String(activity.data?.[0]?.id || seen)) }}>
+                <Bell size={16} />
+                {unread > 0 && <span className="sr-only">{unread} new</span>}
+              </button>
+              {bell && (
+                <div className="notice-pop" role="dialog" aria-label="Notifications">
+                  <strong>Recent activity</strong>
+                  <ul className="activity-list">
+                    {(activity.data || []).slice(0, 8).map((item) => (
+                      <li key={item.id}><span>{item.summary}</span><small>{formatWhen(item.createdAt)}</small></li>
+                    ))}
+                    {(activity.data || []).length === 0 && <li>No activity yet.</li>}
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </header>
         <Ambience />
         <main id="content" className="content">
@@ -246,7 +269,7 @@ export function AppShell() {
         </main>
         <nav className="mobile-nav" aria-label="Mobile">
           <NavLink to="/app" end><Home size={18} />Home</NavLink>
-          <NavLink to="/app/notes"><Library size={18} />Notes</NavLink>
+          <NavLink to="/app/library"><Library size={18} />Library</NavLink>
           <NavLink to="/app/tasks"><ListChecks size={18} />Tasks</NavLink>
           <NavLink to="/app/calendar"><CalendarDays size={18} />Days</NavLink>
           <button type="button" onClick={() => ui.setDrawer(true)}><Menu size={18} />More</button>
